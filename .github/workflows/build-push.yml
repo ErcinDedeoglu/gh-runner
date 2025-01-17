@@ -11,6 +11,9 @@ env:
   IMAGE_NAME: gh-runner
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PLATFORMS: linux/amd64,linux/arm64
+  MAX_BUILD_NUMBER: 999999
+  MAX_VERSION_COMPONENTS: 8
+  MAX_FILE_SIZE: 1048576  # 1MB
 
 jobs:
   build-and-push:
@@ -27,14 +30,55 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get branch name
-          BRANCH=$(echo ${GITHUB_REF#refs/heads/})
+          # Function to handle GitHub API errors
+          handle_github_error() {
+            local response=$1
+            local http_code=$2
+            
+            case $http_code in
+              403)
+                echo "Error: GitHub API rate limit exceeded"
+                exit 1
+                ;;
+              409)
+                echo "Error: Conflict during update, please retry"
+                exit 1
+                ;;
+              404)
+                echo "File not found, will create new"
+                return 0
+                ;;
+              *)
+                if [ $http_code -ge 400 ]; then
+                  echo "Error: GitHub API request failed with code $http_code"
+                  echo "Response: $response"
+                  exit 1
+                fi
+                ;;
+            esac
+          }
+
+          # Get branch name and clean it
+          BRANCH=$(echo ${GITHUB_REF#refs/heads/} | tr -dc 'a-zA-Z0-9._-')
           echo "Current branch: ${BRANCH}"
           
-          # Extract version parts and suffix
-          if [[ $BRANCH =~ ^(v[0-9]+(\.[0-9]+)*)([-].+)?$ ]]; then
-            VERSION_PART="${BASH_REMATCH[1]}"
-            SUFFIX="${BASH_REMATCH[3]:-}"
+          # Extract version parts and suffix with enhanced validation
+          if [[ $BRANCH =~ ^([vV])([0-9]+(\.[0-9]+)*)([-][a-zA-Z0-9._-]+)?$ ]]; then
+            PREFIX="${BASH_REMATCH[1]}"
+            VERSION_NUMS="${BASH_REMATCH[2]}"
+            SUFFIX="${BASH_REMATCH[4]:-}"
+            
+            # Normalize version numbers (remove leading zeros)
+            VERSION_NUMS=$(echo "$VERSION_NUMS" | sed 's/\b0\+\([0-9]\)/\1/g')
+            
+            # Validate version components count
+            COMPONENT_COUNT=$(echo "$VERSION_NUMS" | tr -cd '.' | wc -c)
+            if [ $COMPONENT_COUNT -gt $MAX_VERSION_COMPONENTS ]; then
+              echo "Warning: Version has too many components, using first $MAX_VERSION_COMPONENTS"
+              VERSION_NUMS=$(echo "$VERSION_NUMS" | cut -d. -f1-$MAX_VERSION_COMPONENTS)
+            fi
+            
+            VERSION_PART="v${VERSION_NUMS}"
             echo "Version part: ${VERSION_PART}"
             echo "Suffix: ${SUFFIX}"
           else
@@ -53,15 +97,20 @@ jobs:
           echo "Version file: ${VERSION_FILE}"
           
           # Check if version file exists and get content
-          RESPONSE=$(curl -s -H "Authorization: token ${GH_TOKEN}" \
+          RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${GH_TOKEN}" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}")
           
+          HTTP_CODE=${RESPONSE: -3}
+          RESPONSE_BODY=${RESPONSE:0:${#RESPONSE}-3}
+          
+          handle_github_error "$RESPONSE_BODY" "$HTTP_CODE"
+          
           # Initialize build number
-          if echo "$RESPONSE" | jq -e '.content' > /dev/null 2>&1; then
+          if echo "$RESPONSE_BODY" | jq -e '.content' > /dev/null 2>&1; then
             echo "Existing version file found"
-            echo "$RESPONSE" | jq -r '.content' | base64 --decode > ${VERSION_FILE}
+            echo "$RESPONSE_BODY" | jq -r '.content' | base64 --decode > ${VERSION_FILE}
             BUILD_NUMBER=$(jq -r '.build_number' ${VERSION_FILE})
-            SHA=$(echo "$RESPONSE" | jq -r '.sha')
+            SHA=$(echo "$RESPONSE_BODY" | jq -r '.sha')
             echo "Current build number: ${BUILD_NUMBER}"
           else
             echo "No existing version file, starting from 0"
@@ -69,8 +118,12 @@ jobs:
             SHA=""
           fi
           
-          # Increment build number
+          # Increment build number with overflow protection
           NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          if [ $NEW_BUILD_NUMBER -gt $MAX_BUILD_NUMBER ]; then
+            echo "Warning: Build number exceeded limit, resetting to 1"
+            NEW_BUILD_NUMBER=1
+          fi
           echo "New build number: ${NEW_BUILD_NUMBER}"
           
           # Create full version string
@@ -86,14 +139,22 @@ jobs:
           
           # Build up version tags
           CURRENT_VERSION="v"
+          TAG_COUNT=0
           for PART in "${VERSION_PARTS[@]}"; do
+            if [ $TAG_COUNT -ge $MAX_VERSION_COMPONENTS ]; then
+              break
+            fi
             CURRENT_VERSION="${CURRENT_VERSION}${PART}"
+            
+            # Clean suffix for tag generation
+            CLEAN_SUFFIX=$(echo "$SUFFIX" | tr -dc 'a-zA-Z0-9-_.')
             if [ -n "$SUFFIX" ]; then
-              TAGS+=("${CURRENT_VERSION}${SUFFIX}")
+              TAGS+=("${CURRENT_VERSION}${CLEAN_SUFFIX}")
             else
               TAGS+=("${CURRENT_VERSION}")
             fi
             CURRENT_VERSION="${CURRENT_VERSION}."
+            ((TAG_COUNT++))
           done
           
           # Add full version tag
@@ -102,7 +163,8 @@ jobs:
           # Add suffix-only tag or latest tag
           if [ -n "$SUFFIX" ]; then
             SUFFIX_ONLY="${SUFFIX#-}"
-            TAGS+=("${SUFFIX_ONLY}")
+            CLEAN_SUFFIX_ONLY=$(echo "$SUFFIX_ONLY" | tr -dc 'a-zA-Z0-9-_.')
+            TAGS+=("${CLEAN_SUFFIX_ONLY}")
           else
             TAGS+=("latest")
           fi
@@ -111,12 +173,29 @@ jobs:
           JSON_TAGS=$(printf '%s\n' "${TAGS[@]}" | jq -R . | jq -s .)
           
           # Create new version file content
-          echo "{
-            \"branch\": \"${BRANCH}\",
-            \"build_number\": ${NEW_BUILD_NUMBER},
-            \"version\": \"${FULL_VERSION}\",
-            \"tags\": ${JSON_TAGS}
-          }" > ${VERSION_FILE}
+          VERSION_JSON=$(cat <<EOF
+          {
+            "branch": "${BRANCH}",
+            "build_number": ${NEW_BUILD_NUMBER},
+            "version": "${FULL_VERSION}",
+            "tags": ${JSON_TAGS}
+          }
+          EOF
+          )
+          
+          # Validate JSON and check file size
+          if ! echo "$VERSION_JSON" | jq . >/dev/null 2>&1; then
+            echo "Error: Invalid JSON generated"
+            exit 1
+          fi
+          
+          echo "$VERSION_JSON" > ${VERSION_FILE}
+          
+          FILE_SIZE=$(stat -f%z "$VERSION_FILE" 2>/dev/null || stat -c%s "$VERSION_FILE")
+          if [ $FILE_SIZE -gt $MAX_FILE_SIZE ]; then
+            echo "Error: Version file too large"
+            exit 1
+          fi
           
           # Encode content to base64
           CONTENT=$(base64 -w 0 ${VERSION_FILE})
@@ -128,18 +207,34 @@ jobs:
             DATA="{\"message\": \"Update version to ${FULL_VERSION}\", \"content\": \"${CONTENT}\"}"
           fi
           
-          # Update file via GitHub API
-          UPLOAD_RESPONSE=$(curl -X PUT -H "Authorization: token ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d "${DATA}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}")
+          # Update file via GitHub API with retry logic
+          MAX_RETRIES=3
+          RETRY_COUNT=0
           
-          # Verify upload was successful
-          if echo "$UPLOAD_RESPONSE" | jq -e '.content.sha' > /dev/null 2>&1; then
-            echo "Version file updated successfully"
-          else
-            echo "Error updating version file:"
-            echo "$UPLOAD_RESPONSE"
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            UPLOAD_RESPONSE=$(curl -s -w "%{http_code}" -X PUT -H "Authorization: token ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "${DATA}" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}")
+            
+            HTTP_CODE=${UPLOAD_RESPONSE: -3}
+            RESPONSE_BODY=${UPLOAD_RESPONSE:0:${#UPLOAD_RESPONSE}-3}
+            
+            if [ $HTTP_CODE -eq 200 ] || [ $HTTP_CODE -eq 201 ]; then
+              echo "Version file updated successfully"
+              break
+            elif [ $HTTP_CODE -eq 409 ]; then
+              echo "Conflict detected, retrying..."
+              ((RETRY_COUNT++))
+              sleep 1
+              continue
+            else
+              handle_github_error "$RESPONSE_BODY" "$HTTP_CODE"
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "Error: Failed to update file after $MAX_RETRIES attempts"
             exit 1
           fi
           
@@ -147,48 +242,43 @@ jobs:
           echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
           echo "tags=${JSON_TAGS}" >> $GITHUB_OUTPUT
 
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
 
-    #   - name: Set up QEMU
-    #     uses: docker/setup-qemu-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
-    #   - name: Set up Docker Buildx
-    #     uses: docker/setup-buildx-action@v3
+      # - name: Log in to Docker Hub
+      #   if: github.event_name != 'pull_request'
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_TOKEN }}
 
-    #   - name: Log in to Docker Hub
-    #     if: github.event_name != 'pull_request'
-    #     uses: docker/login-action@v3
-    #     with:
-    #       username: ${{ secrets.DOCKER_USERNAME }}
-    #       password: ${{ secrets.DOCKER_TOKEN }}
+      # - name: Log in to GitHub Container Registry
+      #   if: github.event_name != 'pull_request'
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
-    #   - name: Log in to GitHub Container Registry
-    #     if: github.event_name != 'pull_request'
-    #     uses: docker/login-action@v3
-    #     with:
-    #       registry: ghcr.io
-    #       username: ${{ github.actor }}
-    #       password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Extract metadata (tags, labels) for Docker
+      #   id: meta
+      #   uses: docker/metadata-action@v5
+      #   with:
+      #     images: |
+      #       ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
+      #       ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+      #     tags: ${{ steps.version.outputs.tags }}
 
-    #   - name: Extract metadata (tags, labels) for Docker
-    #     id: meta
-    #     uses: docker/metadata-action@v5
-    #     with:
-    #       images: |
-    #         ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
-    #         ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
-    #       tags: |
-    #         type=raw,value=${{ steps.version.outputs.full_version }}
-    #         type=ref,event=branch
-    #         type=ref,event=pr
-    #         type=sha
-
-    #   - name: Build and push Docker image
-    #     uses: docker/build-push-action@v5
-    #     with:
-    #       context: src
-    #       platforms: ${{ env.PLATFORMS }}
-    #       push: ${{ github.event_name != 'pull_request' }}
-    #       tags: ${{ steps.meta.outputs.tags }}
-    #       labels: ${{ steps.meta.outputs.labels }}
-    #       cache-from: type=gha
-    #       cache-to: type=gha,mode=max
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: src
+      #     platforms: ${{ env.PLATFORMS }}
+      #     push: ${{ github.event_name != 'pull_request' }}
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
