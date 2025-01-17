@@ -70,12 +70,21 @@ Docker Tags:
         'name': f"Release {version}",
         'body': release_notes,
         'draft': False,
-        'prerelease': is_prerelease,
-        'make_latest': not bool(suffix)  # Make it latest release only if no suffix exists
+        'prerelease': is_prerelease
     }
     
-    response = requests.post(url, headers=headers, json=data)
-    return response.status_code == 201
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 201:
+            print(f"Successfully created release: {version}")
+            return True
+        else:
+            print(f"Failed to create release. Status code: {response.status_code}")
+            print(f"Error message: {response.text}")
+            return False
+    except Exception as e:
+        print(f"Exception occurred while creating release: {str(e)}")
+        return False
 
 def main():
     # Get environment variables
