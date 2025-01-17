@@ -31,13 +31,15 @@ jobs:
           BRANCH=$(echo ${GITHUB_REF#refs/heads/})
           echo "Current branch: ${BRANCH}"
           
-          # Extract suffix if exists
+          # Extract version parts and suffix
           if [[ $BRANCH =~ ^(v[0-9]+(\.[0-9]+)*)([-].+)?$ ]]; then
+            VERSION_PART="${BASH_REMATCH[1]}"
             SUFFIX="${BASH_REMATCH[3]:-}"
+            echo "Version part: ${VERSION_PART}"
             echo "Suffix: ${SUFFIX}"
           else
             echo "Branch name doesn't match expected pattern"
-            BRANCH="v0.0"
+            VERSION_PART="v0.0"
             SUFFIX=""
           fi
           
@@ -73,16 +75,47 @@ jobs:
           
           # Create full version string
           if [ -n "$SUFFIX" ]; then
-            FULL_VERSION="${BRANCH}.${NEW_BUILD_NUMBER}${SUFFIX}"
+            FULL_VERSION="${VERSION_PART}.${NEW_BUILD_NUMBER}${SUFFIX}"
           else
-            FULL_VERSION="${BRANCH}.${NEW_BUILD_NUMBER}"
+            FULL_VERSION="${VERSION_PART}.${NEW_BUILD_NUMBER}"
           fi
+          
+          # Generate tags array
+          TAGS=()
+          IFS='.' read -ra VERSION_PARTS <<< "${VERSION_PART#v}"
+          
+          # Build up version tags
+          CURRENT_VERSION="v"
+          for PART in "${VERSION_PARTS[@]}"; do
+            CURRENT_VERSION="${CURRENT_VERSION}${PART}"
+            if [ -n "$SUFFIX" ]; then
+              TAGS+=("${CURRENT_VERSION}${SUFFIX}")
+            else
+              TAGS+=("${CURRENT_VERSION}")
+            fi
+            CURRENT_VERSION="${CURRENT_VERSION}."
+          done
+          
+          # Add full version tag
+          TAGS+=("${FULL_VERSION}")
+          
+          # Add suffix-only tag or latest tag
+          if [ -n "$SUFFIX" ]; then
+            SUFFIX_ONLY="${SUFFIX#-}"
+            TAGS+=("${SUFFIX_ONLY}")
+          else
+            TAGS+=("latest")
+          fi
+          
+          # Convert tags array to JSON array
+          JSON_TAGS=$(printf '%s\n' "${TAGS[@]}" | jq -R . | jq -s .)
           
           # Create new version file content
           echo "{
             \"branch\": \"${BRANCH}\",
             \"build_number\": ${NEW_BUILD_NUMBER},
-            \"version\": \"${FULL_VERSION}\"
+            \"version\": \"${FULL_VERSION}\",
+            \"tags\": ${JSON_TAGS}
           }" > ${VERSION_FILE}
           
           # Encode content to base64
@@ -110,8 +143,10 @@ jobs:
             exit 1
           fi
           
-          # Set full version for later use
+          # Set outputs
           echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+          echo "tags=${JSON_TAGS}" >> $GITHUB_OUTPUT
+
 
     #   - name: Set up QEMU
     #     uses: docker/setup-qemu-action@v3
