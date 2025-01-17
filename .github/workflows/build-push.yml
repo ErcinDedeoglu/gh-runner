@@ -52,20 +52,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare Docker Tags
-        id: docker_tags
+      - name: Generate Docker Tags
+        id: meta
         run: |
-          # Read tags from version output
+          # Parse tags JSON into Docker format
           TAGS_JSON='${{ steps.version.outputs.tags }}'
           
           # Generate Docker Hub tags
-          DOCKERHUB_TAGS=$(echo $TAGS_JSON | jq -r '.[] | "${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:" + .')
+          DOCKERHUB_TAGS=$(echo "$TAGS_JSON" | jq -r '.[] | "${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:" + .')
           
           # Generate GitHub Container Registry tags
-          GHCR_TAGS=$(echo $TAGS_JSON | jq -r '.[] | "ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:" + .')
+          GHCR_TAGS=$(echo "$TAGS_JSON" | jq -r '.[] | "ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:" + .')
           
-          # Combine all tags
-          ALL_TAGS=$(echo -e "${DOCKERHUB_TAGS}\n${GHCR_TAGS}" | jq -R . | jq -s . | jq -c .)
+          # Combine all tags into a comma-separated list
+          ALL_TAGS=$(echo -e "${DOCKERHUB_TAGS}\n${GHCR_TAGS}" | paste -sd "," -)
           
           # Set output
           echo "tags=${ALL_TAGS}" >> $GITHUB_OUTPUT
@@ -76,7 +76,7 @@ jobs:
           context: src
           platforms: ${{ env.PLATFORMS }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ fromJSON(steps.docker_tags.outputs.tags) }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.version=${{ steps.version.outputs.full_version }}
