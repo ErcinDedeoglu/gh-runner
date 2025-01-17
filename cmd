@@ -1,1 +1,1 @@
-repomix --include "src/**" --output "repopack.yml"
+repomix --include "src/**,.github/**" --output "repopack.yml"

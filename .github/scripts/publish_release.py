@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+import os
+import sys
+import json
+import base64
+import requests
+from typing import Dict, Optional
+
+def get_version_file_content(github_token: str, github_repo: str, branch: str) -> Optional[Dict]:
+    """Get content of version file from repository."""
+    headers = {
+        'Authorization': f'token {github_token}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    version_file = f"versions/{branch}.json"
+    url = f"https://api.github.com/repos/{github_repo}/contents/{version_file}"
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return json.loads(base64.b64decode(response.json()['content']))
+    return None
+
+def create_tag(github_token: str, github_repo: str, tag_name: str, sha: str) -> bool:
+    """Create a new tag in the repository."""
+    headers = {
+        'Authorization': f'token {github_token}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    url = f"https://api.github.com/repos/{github_repo}/git/refs"
+    data = {
+        'ref': f'refs/tags/{tag_name}',
+        'sha': sha
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    return response.status_code == 201
+
+def create_release(github_token: str, github_repo: str, version_data: Dict, sha: str) -> bool:
+    """Create a new release in the repository."""
+    headers = {
+        'Authorization': f'token {github_token}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    url = f"https://api.github.com/repos/{github_repo}/releases"
+    
+    # Create release notes with version and tags information
+    release_notes = f"""Version {version_data['version']}
+    
+Build Number: {version_data['build_number']}
+Branch: {version_data['branch']}
+    
+Docker Tags:
+{chr(10).join(['- ' + tag for tag in version_data['tags']])}
+"""
+    
+    data = {
+        'tag_name': version_data['version'],
+        'target_commitish': sha,
+        'name': f"Release {version_data['version']}",
+        'body': release_notes,
+        'draft': False,
+        'prerelease': '-' in version_data['version']  # Mark as prerelease if version contains hyphen
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    return response.status_code == 201
+
+def main():
+    # Get environment variables
+    github_token = os.environ.get('GITHUB_TOKEN')
+    github_repo = os.environ.get('GITHUB_REPOSITORY')
+    branch = os.environ.get('GITHUB_REF').replace('refs/heads/', '')
+    sha = os.environ.get('GITHUB_SHA')
+    
+    if not all([github_token, github_repo, branch, sha]):
+        print("Missing required environment variables")
+        sys.exit(1)
+    
+    # Get version information
+    version_data = get_version_file_content(github_token, github_repo, branch)
+    if not version_data:
+        print("Failed to get version information")
+        sys.exit(1)
+    
+    # Create tag
+    if not create_tag(github_token, github_repo, version_data['version'], sha):
+        print("Failed to create tag")
+        sys.exit(1)
+    print(f"Successfully created tag: {version_data['version']}")
+    
+    # Create release
+    if not create_release(github_token, github_repo, version_data, sha):
+        print("Failed to create release")
+        sys.exit(1)
+    print(f"Successfully created release: {version_data['version']}")
+    
+    # Set output for GitHub Actions
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+        f.write(f"version={version_data['version']}\n")
+        f.write(f"release_created=true\n")
+
+if __name__ == '__main__':
+    main()
