@@ -71,18 +71,19 @@ jobs:
           NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
           echo "New build number: ${NEW_BUILD_NUMBER}"
           
-          # Create new version file content
-          echo "{
-            \"branch\": \"${BRANCH}\",
-            \"build_number\": ${NEW_BUILD_NUMBER}
-          }" > ${VERSION_FILE}
-          
           # Create full version string
           if [ -n "$SUFFIX" ]; then
             FULL_VERSION="${BRANCH}.${NEW_BUILD_NUMBER}${SUFFIX}"
           else
             FULL_VERSION="${BRANCH}.${NEW_BUILD_NUMBER}"
           fi
+          
+          # Create new version file content
+          echo "{
+            \"branch\": \"${BRANCH}\",
+            \"build_number\": ${NEW_BUILD_NUMBER},
+            \"version\": \"${FULL_VERSION}\"
+          }" > ${VERSION_FILE}
           
           # Encode content to base64
           CONTENT=$(base64 -w 0 ${VERSION_FILE})
