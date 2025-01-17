@@ -23,49 +23,108 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        
+      - name: Update version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get branch name
+          BRANCH=$(echo ${GITHUB_REF#refs/heads/})
+          
+          # Create versions directory if it doesn't exist
+          mkdir -p versions
+          
+          # Clean up other version files
+          rm -f versions/*.json
+          
+          VERSION_FILE="versions/${BRANCH}.json"
+          
+          # Check if version file exists in repo
+          if curl -s -H "Authorization: token ${GH_TOKEN}" \
+             "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}" > /dev/null; then
+            # Download existing version file
+            curl -s -H "Authorization: token ${GH_TOKEN}" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}" | \
+              jq -r '.content' | base64 --decode > ${VERSION_FILE}
+            PATCH=$(jq -r '.patch' ${VERSION_FILE})
+          else
+            # Initialize new version file
+            PATCH=0
+          fi
+          
+          # Increment patch version
+          NEW_PATCH=$((PATCH + 1))
+          
+          # Create new version file content
+          echo "{\"branch\": \"${BRANCH}\", \"patch\": ${NEW_PATCH}}" > ${VERSION_FILE}
+          
+          # Encode content to base64
+          CONTENT=$(base64 -w 0 ${VERSION_FILE})
+          
+          # Get SHA if file exists
+          SHA=$(curl -s -H "Authorization: token ${GH_TOKEN}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}" | \
+            jq -r '.sha // empty')
+          
+          # Prepare API request body
+          if [ -n "$SHA" ]; then
+            DATA="{\"message\": \"Update version to ${BRANCH}.${NEW_PATCH}\", \"content\": \"${CONTENT}\", \"sha\": \"${SHA}\"}"
+          else
+            DATA="{\"message\": \"Update version to ${BRANCH}.${NEW_PATCH}\", \"content\": \"${CONTENT}\"}"
+          fi
+          
+          # Update file via GitHub API
+          curl -X PUT -H "Authorization: token ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "${DATA}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}"
+          
+          # Set full version for later use
+          echo "full_version=${BRANCH}.${NEW_PATCH}" >> $GITHUB_OUTPUT
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+    #   - name: Set up QEMU
+    #     uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    #   - name: Set up Docker Buildx
+    #     uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+    #   - name: Log in to Docker Hub
+    #     if: github.event_name != 'pull_request'
+    #     uses: docker/login-action@v3
+    #     with:
+    #       username: ${{ secrets.DOCKER_USERNAME }}
+    #       password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    #   - name: Log in to GitHub Container Registry
+    #     if: github.event_name != 'pull_request'
+    #     uses: docker/login-action@v3
+    #     with:
+    #       registry: ghcr.io
+    #       username: ${{ github.actor }}
+    #       password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
+    #   - name: Extract metadata (tags, labels) for Docker
+    #     id: meta
+    #     uses: docker/metadata-action@v5
+    #     with:
+    #       images: |
+    #         ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
+    #         ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+    #       tags: |
+    #         type=ref,event=branch
+    #         type=ref,event=pr
+    #         type=semver,pattern={{version}}
+    #         type=semver,pattern={{major}}.{{minor}}
+    #         type=sha
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: src
-          platforms: ${{ env.PLATFORMS }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    #   - name: Build and push Docker image
+    #     uses: docker/build-push-action@v5
+    #     with:
+    #       context: src
+    #       platforms: ${{ env.PLATFORMS }}
+    #       push: ${{ github.event_name != 'pull_request' }}
+    #       tags: ${{ steps.meta.outputs.tags }}
+    #       labels: ${{ steps.meta.outputs.labels }}
+    #       cache-from: type=gha
+    #       cache-to: type=gha,mode=max
