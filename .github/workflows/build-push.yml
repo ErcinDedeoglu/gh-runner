@@ -186,11 +186,13 @@ jobs:
             exit 1
           fi
           
-          # Set outputs
-          echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-          echo "tags=${JSON_TAGS}" >> $GITHUB_OUTPUT
-
-      # ... rest of the workflow remains the same ...
+          # Set outputs with proper formatting
+          {
+            echo "full_version=${FULL_VERSION}"
+            echo "tags<<EOF"
+            echo "$JSON_TAGS"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       # - name: Set up QEMU
       #   uses: docker/setup-qemu-action@v3
