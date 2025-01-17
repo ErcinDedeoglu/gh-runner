@@ -71,19 +71,19 @@ jobs:
       #     # Set output
       #     echo "tags=${ALL_TAGS}" >> $GITHUB_OUTPUT
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: src
-          platforms: ${{ env.PLATFORMS }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.version=${{ steps.version.outputs.full_version }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: src
+      #     platforms: ${{ env.PLATFORMS }}
+      #     push: ${{ github.event_name != 'pull_request' }}
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: |
+      #       org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+      #       org.opencontainers.image.version=${{ steps.version.outputs.full_version }}
+      #       org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
 
       - name: Create Release
         if: github.event_name != 'pull_request'
