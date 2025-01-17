@@ -1,3 +1,1 @@
-
-
-repomix --include "**.yaml" --output "repopack.yml"
+repomix --include "src/**" --output "repopack.yml"
