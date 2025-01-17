@@ -1,5 +1,4 @@
 FROM ubuntu:24.04
-
 RUN apt-get update && apt-get install -y \
     bash \
     curl \
@@ -26,7 +25,6 @@ RUN mkdir -p /actions-runner && cd /actions-runner \
 
 RUN mkdir -p /actions-runner/tools
 COPY tools/*.py /actions-runner/tools/
-
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

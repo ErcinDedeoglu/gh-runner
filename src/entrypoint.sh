@@ -29,17 +29,17 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Rest of your original entrypoint.sh content...
+# Disable the root/sudo check for the GitHub Actions runner
 export RUNNER_ALLOW_RUNASROOT=1
+
+# Read environment variables for configuration
 BASE_RUNNER_NAME=${RUNNER_NAME:-"dind-runner"}
 RUNNER_URL=${RUNNER_URL}
 GITHUB_PAT=${GITHUB_PAT}
 
 # Generate timestamp in the required format
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
-# Generate random number between 0-9
 RANDOM_NUM=$((RANDOM % 10))
-# Construct the final runner name
 RUNNER_NAME="${BASE_RUNNER_NAME}-${TIMESTAMP}-${RANDOM_NUM}"
 
 # Validate required environment variables
@@ -51,22 +51,8 @@ fi
 # Print the generated runner name
 echo "Generated runner name: $RUNNER_NAME"
 
-# Function to clean up offline runners
-cleanup_runners() {
-    echo "Cleaning up offline runners..."
-    python3 /actions-runner/tools/delete_offline_runners.py "$RUNNER_URL" "$GITHUB_PAT"
-}
-
-# Start the cleanup script in a loop in the background
-(
-    while true; do
-        cleanup_runners
-        sleep 300  # Sleep for 5 minutes (300 seconds)
-    done
-) &
-
-# Initial cleanup at startup
-cleanup_runners
+# Start background cleanup process
+python3 /actions-runner/tools/background_cleanup.py "$RUNNER_URL" "$GITHUB_PAT" &
 
 # Get runner token
 echo "Getting runner token from GitHub API..."
