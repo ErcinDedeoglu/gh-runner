@@ -46,23 +46,32 @@ def create_release(github_token: str, github_repo: str, version_data: Dict, sha:
     
     url = f"https://api.github.com/repos/{github_repo}/releases"
     
+    # Extract suffix if exists
+    version = version_data['version']
+    suffix = version.split('-')[1] if '-' in version else ''
+    
+    # Determine if it should be a pre-release
+    is_prerelease = suffix.lower() in ['alpha', 'beta']
+    
     # Create release notes with version and tags information
-    release_notes = f"""Version {version_data['version']}
+    release_notes = f"""Version {version}
     
 Build Number: {version_data['build_number']}
 Branch: {version_data['branch']}
+Release Type: {'Pre-release' if is_prerelease else 'Regular Release'}
     
 Docker Tags:
 {chr(10).join(['- ' + tag for tag in version_data['tags']])}
 """
     
     data = {
-        'tag_name': version_data['version'],
+        'tag_name': version,
         'target_commitish': sha,
-        'name': f"Release {version_data['version']}",
+        'name': f"Release {version}",
         'body': release_notes,
         'draft': False,
-        'prerelease': '-' in version_data['version']  # Mark as prerelease if version contains hyphen
+        'prerelease': is_prerelease,
+        'make_latest': not bool(suffix)  # Make it latest release only if no suffix exists
     }
     
     response = requests.post(url, headers=headers, json=data)
