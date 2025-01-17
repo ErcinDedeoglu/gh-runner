@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     kmod \
     fuse-overlayfs \
     iptables \
+    linux-modules-extra-$(uname -r) \
     && rm -rf /var/lib/apt/lists/*
 
 ARG RUNNER_VERSION="2.321.0"
