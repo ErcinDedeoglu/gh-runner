@@ -31,15 +31,13 @@ jobs:
           BRANCH=$(echo ${GITHUB_REF#refs/heads/})
           echo "Current branch: ${BRANCH}"
           
-          # Extract base version and suffix
+          # Extract suffix if exists
           if [[ $BRANCH =~ ^(v[0-9]+(\.[0-9]+)*)([-].+)?$ ]]; then
-            BASE_VERSION="${BASH_REMATCH[1]}"
             SUFFIX="${BASH_REMATCH[3]:-}"
-            echo "Base version: ${BASE_VERSION}"
             echo "Suffix: ${SUFFIX}"
           else
             echo "Branch name doesn't match expected pattern"
-            BASE_VERSION="v0.0"
+            BRANCH="v0.0"
             SUFFIX=""
           fi
           
@@ -76,15 +74,14 @@ jobs:
           # Create new version file content
           echo "{
             \"branch\": \"${BRANCH}\",
-            \"base_version\": \"${BASE_VERSION}\",
             \"build_number\": ${NEW_BUILD_NUMBER}
           }" > ${VERSION_FILE}
           
           # Create full version string
           if [ -n "$SUFFIX" ]; then
-            FULL_VERSION="${BASE_VERSION}.${NEW_BUILD_NUMBER}${SUFFIX}"
+            FULL_VERSION="${BRANCH}.${NEW_BUILD_NUMBER}${SUFFIX}"
           else
-            FULL_VERSION="${BASE_VERSION}.${NEW_BUILD_NUMBER}"
+            FULL_VERSION="${BRANCH}.${NEW_BUILD_NUMBER}"
           fi
           
           # Encode content to base64
