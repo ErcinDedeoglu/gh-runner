@@ -30,6 +30,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -e  # Exit on any error
+          
           # Get branch name and clean it
           BRANCH=$(echo ${GITHUB_REF#refs/heads/})
           echo "Current branch: ${BRANCH}"
@@ -96,27 +98,29 @@ jobs:
           echo "Full version: ${FULL_VERSION}"
           
           # Generate tags array
-          TAGS=()
-          IFS='.' read -ra VERSION_PARTS <<< "${VERSION_PART#v}"
+          declare -a TAGS
+          
+          # Split version into parts
+          IFS='.' read -ra VERSION_PARTS <<< "${VERSION_NUMS}"
           echo "Version parts: ${VERSION_PARTS[@]}"
           
           # Build up version tags
           CURRENT_VERSION="v"
-          TAG_COUNT=0
+          CURRENT_PARTS=""
+          
           for PART in "${VERSION_PARTS[@]}"; do
-            echo "Processing part: $PART"
-            CURRENT_VERSION="${CURRENT_VERSION}${PART}"
-            echo "Current version tag: $CURRENT_VERSION"
+            CURRENT_PARTS="${CURRENT_PARTS}${PART}"
+            TAG_VERSION="v${CURRENT_PARTS}"
             
             if [ -n "$SUFFIX" ]; then
-              TAGS+=("${CURRENT_VERSION}${SUFFIX}")
-              echo "Added tag with suffix: ${CURRENT_VERSION}${SUFFIX}"
+              TAGS+=("${TAG_VERSION}${SUFFIX}")
+              echo "Added tag with suffix: ${TAG_VERSION}${SUFFIX}"
             else
-              TAGS+=("${CURRENT_VERSION}")
-              echo "Added tag: ${CURRENT_VERSION}"
+              TAGS+=("${TAG_VERSION}")
+              echo "Added tag: ${TAG_VERSION}"
             fi
-            CURRENT_VERSION="${CURRENT_VERSION}."
-            ((TAG_COUNT++))
+            
+            CURRENT_PARTS="${CURRENT_PARTS}."
           done
           
           # Add full version tag
@@ -133,15 +137,15 @@ jobs:
             echo "Added latest tag"
           fi
           
-          # Convert tags array to JSON array with error checking
-          if ! JSON_TAGS=$(printf '%s\n' "${TAGS[@]}" | jq -R . | jq -s . 2>/dev/null); then
-            echo "Error creating JSON tags array"
-            exit 1
-          fi
-          echo "Generated tags JSON: $JSON_TAGS"
+          # Debug: Show all tags
+          echo "All tags: ${TAGS[@]}"
           
-          # Create version file content with proper JSON formatting
-          if ! VERSION_JSON=$(jq -n \
+          # Convert tags array to JSON
+          JSON_TAGS=$(printf '%s\n' "${TAGS[@]}" | jq -R . | jq -s .)
+          echo "Tags JSON: $JSON_TAGS"
+          
+          # Create version file content
+          VERSION_JSON=$(jq -n \
             --arg branch "$BRANCH" \
             --arg version "$FULL_VERSION" \
             --argjson build_number "$NEW_BUILD_NUMBER" \
@@ -151,13 +155,7 @@ jobs:
               build_number: $build_number,
               version: $version,
               tags: $tags
-            }'); then
-            echo "Error creating version JSON"
-            exit 1
-          fi
-          
-          echo "Generated version JSON:"
-          echo "$VERSION_JSON" | jq .
+            }')
           
           echo "$VERSION_JSON" > "${VERSION_FILE}"
           
@@ -171,43 +169,28 @@ jobs:
             DATA="{\"message\": \"Update version to ${FULL_VERSION}\", \"content\": \"${CONTENT}\"}"
           fi
           
-          # Update file via GitHub API with retry logic
-          MAX_RETRIES=3
-          RETRY_COUNT=0
-          SUCCESS=false
+          # Update file via GitHub API
+          UPLOAD_RESPONSE=$(curl -s -w "%{http_code}" -X PUT -H "Authorization: token ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "${DATA}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}")
           
-          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            UPLOAD_RESPONSE=$(curl -s -w "%{http_code}" -X PUT -H "Authorization: token ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -d "${DATA}" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${VERSION_FILE}")
-            
-            HTTP_CODE=${UPLOAD_RESPONSE: -3}
-            RESPONSE_BODY=${UPLOAD_RESPONSE:0:${#UPLOAD_RESPONSE}-3}
-            
-            if [ $HTTP_CODE -eq 200 ] || [ $HTTP_CODE -eq 201 ]; then
-              echo "Version file updated successfully"
-              SUCCESS=true
-              break
-            elif [ $HTTP_CODE -eq 409 ]; then
-              echo "Conflict detected, retrying..."
-              ((RETRY_COUNT++))
-              sleep 1
-            else
-              echo "Error: GitHub API request failed with code $HTTP_CODE"
-              echo "Response: $RESPONSE_BODY"
-              exit 1
-            fi
-          done
+          HTTP_CODE=${UPLOAD_RESPONSE: -3}
+          RESPONSE_BODY=${UPLOAD_RESPONSE:0:${#UPLOAD_RESPONSE}-3}
           
-          if [ "$SUCCESS" != true ]; then
-            echo "Error: Failed to update file after $MAX_RETRIES attempts"
+          if [ $HTTP_CODE -eq 200 ] || [ $HTTP_CODE -eq 201 ]; then
+            echo "Version file updated successfully"
+          else
+            echo "Error: Failed to update version file. Status: $HTTP_CODE"
+            echo "Response: $RESPONSE_BODY"
             exit 1
           fi
           
           # Set outputs
           echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
           echo "tags=${JSON_TAGS}" >> $GITHUB_OUTPUT
+
+      # ... rest of the workflow remains the same ...
 
       # - name: Set up QEMU
       #   uses: docker/setup-qemu-action@v3
