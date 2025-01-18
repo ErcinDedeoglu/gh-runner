@@ -37,7 +37,14 @@ class DockerBuildAndPush:
         if env is None:
             env = os.environ.copy()
         
-        print(f"Executing: {command}", flush=True)
+        print(f"\n=== Executing Command ===", flush=True)
+        print(f"Command: {command}", flush=True)
+        print(f"Shell: {shell}", flush=True)
+        print(f"Environment variables:", flush=True)
+        for key, value in env.items():
+            if not any(secret in key.lower() for secret in ['token', 'password', 'secret']):
+                print(f"  {key}: {value}", flush=True)
+        print("======================\n", flush=True)
         
         # If it's a Python script, run it with python explicitly
         if command.endswith('.py'):
@@ -50,6 +57,16 @@ class DockerBuildAndPush:
             capture_output=True,
             env=env
         )
+        
+        print("\n=== Command Result ===", flush=True)
+        print(f"Return code: {result.returncode}", flush=True)
+        print("Standard output:", flush=True)
+        print(result.stdout, flush=True)
+        if result.stderr:
+            print("Standard error:", flush=True)
+            print(result.stderr, flush=True)
+        print("===================\n", flush=True)
+        
         if result.returncode != 0:
             raise Exception(f"Command failed: {result.stderr}")
         return result.stdout.strip()
@@ -88,6 +105,14 @@ class DockerBuildAndPush:
         tag_list = tags.split(',')
         tag_args = ' '.join([f'--tag {tag}' for tag in tag_list])
         
+        print("\n=== Build Configuration ===", flush=True)
+        print(f"Platforms: {self.platforms}", flush=True)
+        print("Tags:", flush=True)
+        for tag in tag_list:
+            print(f"  - {tag}", flush=True)
+        print(f"Version: {version}", flush=True)
+        print("=========================\n", flush=True)
+        
         build_cmd = f"""docker buildx build \
             --platform {self.platforms} \
             --push \
@@ -99,7 +124,11 @@ class DockerBuildAndPush:
             --cache-to type=gha,mode=max \
             src"""
         
-        self.run_command(build_cmd)
+        print("\n=== Docker Build Command ===", flush=True)
+        print(build_cmd, flush=True)
+        print("=========================\n", flush=True)
+    
+    self.run_command(build_cmd)
 
     def save_docker_image(self, version):
         """Save Docker image to tar file"""
