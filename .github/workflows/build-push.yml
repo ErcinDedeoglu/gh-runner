@@ -78,10 +78,15 @@ jobs:
 
       - name: Save Docker images as artifacts
         run: |
-          TAGS=(${{ steps.meta.outputs.tags }})
+          set -e # Exit on any error
+          IFS=',' read -ra TAGS <<< "${{ steps.meta.outputs.tags }}"
           for TAG in "${TAGS[@]}"; do
+            echo "Saving image: $TAG"
             SAFE_TAG=$(echo "$TAG" | tr '/' '_')
-            docker save -o "${SAFE_TAG}.tar" "$TAG"
+            if ! docker save -o "${SAFE_TAG}.tar" "$TAG"; then
+              echo "Failed to save image: $TAG"
+              exit 1
+            fi
           done
 
       - name: Combine Docker images into a single tar file
