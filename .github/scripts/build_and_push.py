@@ -26,6 +26,11 @@ class DockerBuildAndPush:
             env = os.environ.copy()
         
         print(f"Executing: {command}")
+        
+        # If it's a Python script, run it with python explicitly
+        if command.endswith('.py'):
+            command = f"python {command}"
+        
         result = subprocess.run(
             command,
             shell=shell,
