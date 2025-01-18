@@ -101,10 +101,16 @@ jobs:
         run: |
           chmod +x .github/scripts/publish_release.py
           .github/scripts/publish_release.py
-      - name: Upload Docker image to release
+      - name: Upload release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.full_version }}"
-          echo "Uploading ${IMAGE_NAME}.tar to release $VERSION"
-          gh release upload "$VERSION" "${IMAGE_NAME}.tar"
+          BRANCH=${GITHUB_REF#refs/heads/}
+          echo "Uploading release assets for version $VERSION"
+          gh release upload "$VERSION" \
+            "${IMAGE_NAME}.tar" \
+            ".sbom/sbom.json" \
+            ".sbom/sbom.txt" \
+            ".vulnerability_report.txt" \
+            ".version_${BRANCH}.json"
