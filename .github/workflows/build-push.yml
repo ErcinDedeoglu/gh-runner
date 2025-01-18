@@ -68,7 +68,7 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Save Docker images as artifacts
+      - name: Save Docker image
         run: |
           set -e # Exit on any error
           VERSION="${{ steps.version.outputs.full_version }}"
@@ -80,11 +80,6 @@ jobs:
           docker pull $GHCR_TAG
           echo "Saving GitHub Container Registry image: $GHCR_TAG"
           docker save $GHCR_TAG -o "${IMAGE_NAME}.tar"
-      - name: Upload Docker image as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.IMAGE_NAME }}
-          path: ${{ env.IMAGE_NAME }}.tar
       - name: Generate SBOM
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
