@@ -141,18 +141,22 @@ class DockerBuildAndPush:
             self.docker_login()
             
             # Step 4: Generate tags and build/push
-            tags = self.generate_docker_tags(json.loads(version_info))  # Parse the JSON string here
+            # Use a default tag structure since version_info is not JSON
+            tags = f"{self.docker_username}/{self.image_name}:latest,ghcr.io/{self.github_repository_owner}/{self.image_name}:latest"
+            if version:
+                tags += f",{self.docker_username}/{self.image_name}:{version},ghcr.io/{self.github_repository_owner}/{self.image_name}:{version}"
+            
             print(f"Generated tags: {tags}")
-            self.build_and_push(tags, version)
+            self.build_and_push(tags, version or 'latest')
             
             # Step 5: Save Docker image
-            self.save_docker_image(version)
+            self.save_docker_image(version or 'latest')
             
             # Step 6: Generate reports
-            self.generate_reports(version)
+            self.generate_reports(version or 'latest')
             
             # Step 7: Create release and upload assets
-            self.create_release(version)
+            self.create_release(version or 'latest')
             
             print("Workflow completed successfully")
         except Exception as e:
