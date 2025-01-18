@@ -71,19 +71,24 @@ jobs:
       - name: Save Docker images as artifacts
         run: |
           set -e # Exit on any error
-          IFS=',' read -ra TAGS <<< "${{ steps.meta.outputs.tags }}"
-          for TAG in "${TAGS[@]}"; do
-            # Replace *** with actual Docker username
-            ACTUAL_TAG=$(echo "$TAG" | sed "s/\*\*\*/${DOCKER_USERNAME}/g")
-            echo "Pulling image: $ACTUAL_TAG"
-            docker pull $ACTUAL_TAG
-            echo "Saving image: $ACTUAL_TAG"
-            SAFE_TAG=$(echo "$ACTUAL_TAG" | tr '/' '_')
-            if ! docker save -o "${SAFE_TAG}.tar" "$ACTUAL_TAG"; then
-              echo "Failed to save image: $ACTUAL_TAG"
-              exit 1
-            fi
-          done
+          VERSION="${{ steps.version.outputs.full_version }}"
+          
+          # Save Docker Hub image
+          DOCKER_TAG="${DOCKER_USERNAME}/${IMAGE_NAME}:${VERSION}"
+          echo "Saving image: $DOCKER_TAG"
+          if ! docker save -o "dockerhub.tar" "$DOCKER_TAG"; then
+            echo "Failed to save Docker Hub image"
+            exit 1
+          fi
+          
+          # Save GitHub Container Registry image
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          GHCR_TAG="ghcr.io/${REPO_OWNER}/${IMAGE_NAME}:${VERSION}"
+          echo "Saving image: $GHCR_TAG"
+          if ! docker save -o "ghcr.tar" "$GHCR_TAG"; then
+            echo "Failed to save GitHub Container Registry image"
+            exit 1
+          fi
       - name: Combine Docker images into a single tar file
         run: |
           TAGS=(${{ steps.meta.outputs.tags }})
