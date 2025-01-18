@@ -74,7 +74,7 @@ jobs:
           IFS=',' read -ra TAGS <<< "${{ steps.meta.outputs.tags }}"
           for TAG in "${TAGS[@]}"; do
             # Replace *** with actual Docker username
-            ACTUAL_TAG=$(echo "$TAG" | sed "s/\*\*\*/${{ env.DOCKER_USERNAME }}/g")
+            ACTUAL_TAG=$(echo "$TAG" | sed "s/\*\*\*/${DOCKER_USERNAME}/g")
             echo "Saving image: $ACTUAL_TAG"
             SAFE_TAG=$(echo "$ACTUAL_TAG" | tr '/' '_')
             if ! docker save -o "${SAFE_TAG}.tar" "$ACTUAL_TAG"; then
