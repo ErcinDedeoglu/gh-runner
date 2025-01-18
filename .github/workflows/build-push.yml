@@ -75,6 +75,8 @@ jobs:
           for TAG in "${TAGS[@]}"; do
             # Replace *** with actual Docker username
             ACTUAL_TAG=$(echo "$TAG" | sed "s/\*\*\*/${DOCKER_USERNAME}/g")
+            echo "Pulling image: $ACTUAL_TAG"
+            docker pull $ACTUAL_TAG
             echo "Saving image: $ACTUAL_TAG"
             SAFE_TAG=$(echo "$ACTUAL_TAG" | tr '/' '_')
             if ! docker save -o "${SAFE_TAG}.tar" "$ACTUAL_TAG"; then
