@@ -9,6 +9,7 @@ env:
   IMAGE_NAME: gh-runner
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PLATFORMS: linux/amd64,linux/arm64
+  PYTHONUNBUFFERED: "1"  # Force Python to run unbuffered
 
 jobs:
   build-and-push:
@@ -39,4 +40,5 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install requests
-          python .github/scripts/build_and_push.py
+          # Run Python with -u flag to force unbuffered output
+          python -u .github/scripts/build_and_push.py

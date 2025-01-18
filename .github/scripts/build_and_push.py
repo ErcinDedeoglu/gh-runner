@@ -6,14 +6,14 @@ import json
 import sys
 from pathlib import Path
 
-print("Script started...")
-print(f"Python version: {sys.version}")
-print(f"Current working directory: {os.getcwd()}")
-print(f"Contents of current directory: {os.listdir('.')}")
+print("Script started...", flush=True)
+print(f"Python version: {sys.version}", flush=True)
+print(f"Current working directory: {os.getcwd()}", flush=True)
+print(f"Contents of current directory: {os.listdir('.')}", flush=True)
 
 class DockerBuildAndPush:
     def __init__(self):
-        print("Initializing DockerBuildAndPush...")
+        print("Initializing DockerBuildAndPush...", flush=True)
         # Initialize with the exact environment variables from the workflow
         self.image_name = os.getenv("IMAGE_NAME")
         self.docker_username = os.getenv("DOCKER_USERNAME")
@@ -26,18 +26,18 @@ class DockerBuildAndPush:
         self.github_ref = os.getenv("GITHUB_REF")
         self.github_repository_owner = os.getenv("GITHUB_REPOSITORY_OWNER", "").lower()
         
-        print("Environment variables loaded:")
-        print(f"IMAGE_NAME: {self.image_name}")
-        print(f"PLATFORMS: {self.platforms}")
-        print(f"GITHUB_REPOSITORY: {self.github_repository}")
-        print(f"GITHUB_ACTOR: {self.github_actor}")
+        print("Environment variables loaded:", flush=True)
+        print(f"IMAGE_NAME: {self.image_name}", flush=True)
+        print(f"PLATFORMS: {self.platforms}", flush=True)
+        print(f"GITHUB_REPOSITORY: {self.github_repository}", flush=True)
+        print(f"GITHUB_ACTOR: {self.github_actor}", flush=True)
 
     def run_command(self, command, shell=True, env=None):
         """Execute a command and handle its output"""
         if env is None:
             env = os.environ.copy()
         
-        print(f"Executing: {command}")
+        print(f"Executing: {command}", flush=True)
         
         # If it's a Python script, run it with python explicitly
         if command.endswith('.py'):
@@ -145,8 +145,8 @@ class DockerBuildAndPush:
             # Step 1: Update version
             version_info = self.update_version()
             version = os.getenv("FULL_VERSION")  # Set by update_version.py
-            print(f"Version info: {version_info}")
-            print(f"Full version: {version}")
+            print(f"Version info: {version_info}", flush=True)
+            print(f"Full version: {version}", flush=True)
 
             # Step 2: Setup Docker
             self.setup_qemu()
@@ -161,7 +161,7 @@ class DockerBuildAndPush:
             if version:
                 tags += f",{self.docker_username}/{self.image_name}:{version},ghcr.io/{self.github_repository_owner}/{self.image_name}:{version}"
             
-            print(f"Generated tags: {tags}")
+            print(f"Generated tags: {tags}", flush=True)
             self.build_and_push(tags, version or 'latest')
             
             # Step 5: Save Docker image
@@ -173,9 +173,9 @@ class DockerBuildAndPush:
             # Step 7: Create release and upload assets
             self.create_release(version or 'latest')
             
-            print("Workflow completed successfully")
+            print("Workflow completed successfully", flush=True)
         except Exception as e:
-            print(f"Error: {str(e)}")
+            print(f"Error: {str(e)}", flush=True)
             sys.exit(1)
 
 if __name__ == "__main__":
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     required_vars = ["IMAGE_NAME", "DOCKER_USERNAME", "DOCKER_TOKEN", "GH_TOKEN", "PLATFORMS"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     if missing_vars:
-        print(f"Missing required environment variables: {', '.join(missing_vars)}")
+        print(f"Missing required environment variables: {', '.join(missing_vars)}", flush=True)
         sys.exit(1)
 
     workflow = DockerBuildAndPush()
