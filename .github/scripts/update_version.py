@@ -52,6 +52,28 @@ def main():
         'Accept': 'application/vnd.github.v3+json'
     }
 
+    # Check for existing version files in the root directory
+    # Find the latest build number by looking for files with the "version_" prefix
+    list_url = f"https://api.github.com/repos/{github_repo}/contents/"
+    response = requests.get(list_url, headers=headers)
+    if response.status_code == 200:
+        files = response.json()
+        version_files = [f for f in files if f['name'].startswith('version_') and f['name'].endswith('.json')]
+        if version_files:
+            # Extract build numbers from existing version files
+            build_numbers = []
+            for file in version_files:
+                file_name = file['name']
+                version_match = re.match(r'version_v(\d+\.\d+\.\d+)\.(\d+)(-\w+)?\.json', file_name)
+                if version_match:
+                    build_numbers.append(int(version_match.group(2)))
+            # Set build_number to the highest build number + 1
+            build_number = max(build_numbers) + 1 if build_numbers else 1
+        else:
+            build_number = 1
+    else:
+        build_number = 1
+
     # Generate version information
     full_version = f"{version_part}.{build_number}{suffix}"
     tags = generate_tags(version_nums, suffix, build_number)
