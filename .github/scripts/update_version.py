@@ -22,20 +22,16 @@ def generate_tags(version_nums: str, suffix: str, build_number: int) -> List[str
     tags = []
     parts = version_nums.split('.')
     current = 'v'
-    
     # Add incremental version tags
     for part in parts:
         current += part
         tags.append(f"{current}{suffix}")
         current += '.'
-    
     # Add full version tag
     full_version = f"v{version_nums}.{build_number}{suffix}"
     tags.append(full_version)
-    
     # Add latest or suffix tag
     tags.append(suffix.lstrip('-') if suffix else 'latest')
-    
     return tags
 
 def main():
@@ -43,36 +39,23 @@ def main():
     github_token = os.environ['GH_TOKEN']
     github_repo = os.environ['GITHUB_REPOSITORY']
     branch = os.environ['GITHUB_REF'].replace('refs/heads/', '')
-    
+
     # Get version information
     version_part, version_nums, suffix = get_version_parts(branch)
     print(f"Branch: {branch}")
     print(f"Version part: {version_part}")
     print(f"Suffix: {suffix}")
-    
+
     # Setup API
     headers = {
         'Authorization': f'token {github_token}',
         'Accept': 'application/vnd.github.v3+json'
     }
-    
-    # Get existing version file if it exists
-    version_file = f"versions/{branch}.json"
-    url = f"https://api.github.com/repos/{github_repo}/contents/{version_file}"
-    
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        content = json.loads(base64.b64decode(response.json()['content']))
-        build_number = content['build_number'] + 1
-        sha = response.json()['sha']
-    else:
-        build_number = 1
-        sha = None
-    
+
     # Generate version information
     full_version = f"{version_part}.{build_number}{suffix}"
     tags = generate_tags(version_nums, suffix, build_number)
-    
+
     # Create version file content
     version_data = {
         'branch': branch,
@@ -80,7 +63,18 @@ def main():
         'version': full_version,
         'tags': tags
     }
-    
+
+    # Define the new file path in the root directory
+    version_file = f"version_{full_version}.json"
+    url = f"https://api.github.com/repos/{github_repo}/contents/{version_file}"
+
+    # Check if the file already exists
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        sha = response.json()['sha']
+    else:
+        sha = None
+
     # Update file in repository
     content = base64.b64encode(json.dumps(version_data, indent=2).encode()).decode()
     data = {
@@ -89,13 +83,13 @@ def main():
     }
     if sha:
         data['sha'] = sha
-    
+
     response = requests.put(url, headers=headers, json=data)
     if not response.ok:
         print(f"Error updating file: {response.status_code}")
         print(response.text)
         sys.exit(1)
-    
+
     # Set GitHub Actions outputs
     with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
         f.write(f"full_version={full_version}\n")
