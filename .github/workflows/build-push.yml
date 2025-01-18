@@ -76,9 +76,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Save Docker image as artifact
+      - name: Save Docker images as artifacts
         run: |
-          docker save -o ${{ env.IMAGE_NAME }}.tar ${{ steps.meta.outputs.tags }}
+          TAGS=(${{ steps.meta.outputs.tags }})
+          for TAG in "${TAGS[@]}"; do
+            docker save -o "${TAG//\//_}.tar" "$TAG"
+          done
+
+      - name: Combine Docker images into a single tar file
+        run: |
+          TAGS=(${{ steps.meta.outputs.tags }})
+          for TAG in "${TAGS[@]}"; do
+            tar -rf "${{ env.IMAGE_NAME }}.tar" "${TAG//\//_}.tar"
+          done
 
       - name: Upload Docker image as artifact
         uses: actions/upload-artifact@v3
