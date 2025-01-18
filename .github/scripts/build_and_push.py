@@ -128,7 +128,7 @@ class DockerBuildAndPush:
         print(f"Version: {version}", flush=True)
         print("=========================\n", flush=True)
         
-        # Modified build command with more verbose output flags
+        # Removed -v flag and adjusted build command
         build_cmd = f"""docker buildx build \
             --platform {self.platforms} \
             --push \
@@ -140,7 +140,6 @@ class DockerBuildAndPush:
             --cache-to type=gha,mode=max \
             --progress=plain \
             --no-cache \
-            -v \
             src"""
         
         print("\n=== Docker Build Command ===", flush=True)
