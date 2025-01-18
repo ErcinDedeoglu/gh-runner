@@ -13,7 +13,7 @@ def get_version_file_content(github_token: str, github_repo: str, branch: str) -
         'Accept': 'application/vnd.github.v3+json'
     }
     # Look for version file in root directory
-    version_file = f"version_{branch}.json"
+    version_file = f".version_{branch}.json"
     url = f"https://api.github.com/repos/{github_repo}/contents/{version_file}"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:

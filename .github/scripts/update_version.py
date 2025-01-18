@@ -36,7 +36,7 @@ def generate_tags(version_nums: str, suffix: str, build_number: int) -> List[str
 
 def get_existing_version_file(headers: Dict, github_repo: str, branch: str) -> tuple[Dict, str]:
     """Get content of version file for specific branch from repository."""
-    filename = f"version_{branch}.json"
+    filename = f".version_{branch}.json"
     url = f"https://api.github.com/repos/{github_repo}/contents/{filename}"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
@@ -79,7 +79,7 @@ def main():
     }
 
     # Update or create version file
-    filename = f"version_{branch}.json"
+    filename = f".version_{branch}.json"
     url = f"https://api.github.com/repos/{github_repo}/contents/{filename}"
     
     content = base64.b64encode(json.dumps(version_data, indent=2).encode()).decode()
