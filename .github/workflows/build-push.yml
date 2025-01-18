@@ -73,27 +73,13 @@ jobs:
           set -e # Exit on any error
           VERSION="${{ steps.version.outputs.full_version }}"
           
-          # Pull and save Docker Hub image
-          DOCKER_TAG="${DOCKER_USERNAME}/${IMAGE_NAME}:${VERSION}"
-          echo "Pulling Docker Hub image: $DOCKER_TAG"
-          docker pull $DOCKER_TAG
-          echo "Saving Docker Hub image: $DOCKER_TAG"
-          docker save $DOCKER_TAG > "${IMAGE_NAME}.tar"
-          
           # Pull and save GitHub Container Registry image
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           GHCR_TAG="ghcr.io/${REPO_OWNER}/${IMAGE_NAME}:${VERSION}"
           echo "Pulling GitHub Container Registry image: $GHCR_TAG"
           docker pull $GHCR_TAG
           echo "Saving GitHub Container Registry image: $GHCR_TAG"
-          docker save $GHCR_TAG >> "${IMAGE_NAME}.tar"
-      - name: Combine Docker images into a single tar file
-        run: |
-          TAGS=(${{ steps.meta.outputs.tags }})
-          for TAG in "${TAGS[@]}"; do
-            SAFE_TAG=$(echo "$TAG" | tr '/' '_')
-            tar -rf "${{ env.IMAGE_NAME }}.tar" "${SAFE_TAG}.tar"
-          done
+          docker save $GHCR_TAG -o "${IMAGE_NAME}.tar"
       - name: Upload Docker image as artifact
         uses: actions/upload-artifact@v3
         with:
