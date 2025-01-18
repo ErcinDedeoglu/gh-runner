@@ -83,6 +83,24 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Generate SBOM
+        run: |
+          # Create output directory for SBOM
+          mkdir -p sbom_output
+          
+          # Extract image tags and convert to comma-separated list
+          IMAGES=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | head -n 1)
+          
+          # Run SBOM generation
+          sudo docker run --rm \
+            -e IMAGES=${IMAGES} \
+            -e FILE_PREFIX="" \
+            -e FILE_SUFFIX="" \
+            -e FILE_NAME="[TAG]" \
+            -v "/var/run/docker.sock:/var/run/docker.sock" \
+            -v "$(pwd)/sbom_output:/output" \
+            dublok/sbominify:latest
+
       - name: Create Release
         id: release
         env:
