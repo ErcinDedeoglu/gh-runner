@@ -34,6 +34,22 @@ def generate_tags(version_nums: str, suffix: str, build_number: int) -> List[str
     tags.append(suffix.lstrip('-') if suffix else 'latest')
     return tags
 
+def get_existing_version_file(headers: Dict, github_repo: str) -> tuple[str, Dict, str]:
+    """Find the most recent version file in the repository."""
+    url = f"https://api.github.com/repos/{github_repo}/contents"
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        files = response.json()
+        version_files = [f for f in files if f['name'].startswith('version_') and f['name'].endswith('.json')]
+        if version_files:
+            # Get the latest version file
+            latest_file = sorted(version_files, key=lambda x: x['name'])[-1]
+            file_response = requests.get(latest_file['url'], headers=headers)
+            if file_response.status_code == 200:
+                content = json.loads(base64.b64decode(file_response.json()['content']))
+                return latest_file['name'], content, file_response.json()['sha']
+    return None, None, None
+
 def main():
     # Get environment variables
     github_token = os.environ['GH_TOKEN']
@@ -52,27 +68,9 @@ def main():
         'Accept': 'application/vnd.github.v3+json'
     }
 
-    # Check for existing version files in the root directory
-    # Find the latest build number by looking for files with the "version_" prefix
-    list_url = f"https://api.github.com/repos/{github_repo}/contents/"
-    response = requests.get(list_url, headers=headers)
-    if response.status_code == 200:
-        files = response.json()
-        version_files = [f for f in files if f['name'].startswith('version_') and f['name'].endswith('.json')]
-        if version_files:
-            # Extract build numbers from existing version files
-            build_numbers = []
-            for file in version_files:
-                file_name = file['name']
-                version_match = re.match(r'version_v(\d+\.\d+\.\d+)\.(\d+)(-\w+)?\.json', file_name)
-                if version_match:
-                    build_numbers.append(int(version_match.group(2)))
-            # Set build_number to the highest build number + 1
-            build_number = max(build_numbers) + 1 if build_numbers else 1
-        else:
-            build_number = 1
-    else:
-        build_number = 1
+    # Get existing version file if it exists
+    _, existing_content, _ = get_existing_version_file(headers, github_repo)
+    build_number = (existing_content['build_number'] + 1) if existing_content else 1
 
     # Generate version information
     full_version = f"{version_part}.{build_number}{suffix}"
@@ -86,25 +84,15 @@ def main():
         'tags': tags
     }
 
-    # Define the new file path in the root directory
-    version_file = f"version_{full_version}.json"
-    url = f"https://api.github.com/repos/{github_repo}/contents/{version_file}"
-
-    # Check if the file already exists
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        sha = response.json()['sha']
-    else:
-        sha = None
-
-    # Update file in repository
+    # Create new version file
+    new_filename = f"version_{full_version}.json"
+    url = f"https://api.github.com/repos/{github_repo}/contents/{new_filename}"
+    
     content = base64.b64encode(json.dumps(version_data, indent=2).encode()).decode()
     data = {
         'message': f'Update version to {full_version}',
         'content': content,
     }
-    if sha:
-        data['sha'] = sha
 
     response = requests.put(url, headers=headers, json=data)
     if not response.ok:
