@@ -4,10 +4,12 @@ on:
     paths:
       - 'src/**'
   workflow_dispatch:
+
 env:
   IMAGE_NAME: gh-runner
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PLATFORMS: linux/amd64,linux/arm64
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -17,6 +19,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Run build and push script
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
