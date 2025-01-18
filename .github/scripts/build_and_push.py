@@ -6,8 +6,14 @@ import json
 import sys
 from pathlib import Path
 
+print("Script started...")
+print(f"Python version: {sys.version}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Contents of current directory: {os.listdir('.')}")
+
 class DockerBuildAndPush:
     def __init__(self):
+        print("Initializing DockerBuildAndPush...")
         # Initialize with the exact environment variables from the workflow
         self.image_name = os.getenv("IMAGE_NAME")
         self.docker_username = os.getenv("DOCKER_USERNAME")
@@ -19,6 +25,12 @@ class DockerBuildAndPush:
         self.github_actor = os.getenv("GITHUB_ACTOR")
         self.github_ref = os.getenv("GITHUB_REF")
         self.github_repository_owner = os.getenv("GITHUB_REPOSITORY_OWNER", "").lower()
+        
+        print("Environment variables loaded:")
+        print(f"IMAGE_NAME: {self.image_name}")
+        print(f"PLATFORMS: {self.platforms}")
+        print(f"GITHUB_REPOSITORY: {self.github_repository}")
+        print(f"GITHUB_ACTOR: {self.github_actor}")
 
     def run_command(self, command, shell=True, env=None):
         """Execute a command and handle its output"""
