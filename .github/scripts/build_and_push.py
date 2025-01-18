@@ -32,6 +32,18 @@ class DockerBuildAndPush:
         print(f"GITHUB_REPOSITORY: {self.github_repository}", flush=True)
         print(f"GITHUB_ACTOR: {self.github_actor}", flush=True)
 
+    def log_step(self, message, start=True):
+        """Helper method to log step boundaries"""
+        border = "=" * 80
+        if start:
+            print(f"\n{border}", flush=True)
+            print(f"🚀 STARTING STEP: {message}", flush=True)
+            print(f"{border}\n", flush=True)
+        else:
+            print(f"\n{border}", flush=True)
+            print(f"✅ COMPLETED STEP: {message}", flush=True)
+            print(f"{border}\n", flush=True)
+
     def run_command(self, command, shell=True, env=None):
         """Execute a command and handle its output"""
         if env is None:
@@ -172,39 +184,57 @@ class DockerBuildAndPush:
         """Execute all steps in sequence"""
         try:
             # Step 1: Update version
+            self.log_step("UPDATE VERSION")
             version_info = self.update_version()
             version = os.getenv("FULL_VERSION")  # Set by update_version.py
             print(f"Version info: {version_info}", flush=True)
             print(f"Full version: {version}", flush=True)
+            self.log_step("UPDATE VERSION", start=False)
 
             # Step 2: Setup Docker
+            self.log_step("SETUP DOCKER ENVIRONMENT")
             self.setup_qemu()
             self.setup_buildx()
+            self.log_step("SETUP DOCKER ENVIRONMENT", start=False)
             
             # Step 3: Docker login
+            self.log_step("DOCKER LOGIN")
             self.docker_login()
+            self.log_step("DOCKER LOGIN", start=False)
             
             # Step 4: Generate tags and build/push
-            # Use a default tag structure since version_info is not JSON
+            self.log_step("BUILD AND PUSH DOCKER IMAGE")
             tags = f"{self.docker_username}/{self.image_name}:latest,ghcr.io/{self.github_repository_owner}/{self.image_name}:latest"
             if version:
                 tags += f",{self.docker_username}/{self.image_name}:{version},ghcr.io/{self.github_repository_owner}/{self.image_name}:{version}"
             
             print(f"Generated tags: {tags}", flush=True)
             self.build_and_push(tags, version or 'latest')
+            self.log_step("BUILD AND PUSH DOCKER IMAGE", start=False)
             
             # Step 5: Save Docker image
+            self.log_step("SAVE DOCKER IMAGE")
             self.save_docker_image(version or 'latest')
+            self.log_step("SAVE DOCKER IMAGE", start=False)
             
             # Step 6: Generate reports
+            self.log_step("GENERATE REPORTS")
             self.generate_reports(version or 'latest')
+            self.log_step("GENERATE REPORTS", start=False)
             
             # Step 7: Create release and upload assets
+            self.log_step("CREATE AND UPLOAD RELEASE")
             self.create_release(version or 'latest')
+            self.log_step("CREATE AND UPLOAD RELEASE", start=False)
             
-            print("Workflow completed successfully", flush=True)
+            print("\n" + "=" * 80, flush=True)
+            print("🎉 WORKFLOW COMPLETED SUCCESSFULLY 🎉", flush=True)
+            print("=" * 80 + "\n", flush=True)
         except Exception as e:
+            print("\n" + "=" * 80, flush=True)
+            print("❌ WORKFLOW FAILED ❌", flush=True)
             print(f"Error: {str(e)}", flush=True)
+            print("=" * 80 + "\n", flush=True)
             sys.exit(1)
 
 if __name__ == "__main__":
