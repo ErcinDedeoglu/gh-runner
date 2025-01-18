@@ -70,10 +70,17 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Save Docker images as artifacts
         run: |
+          set -e # Exit on any error
           IFS=',' read -ra TAGS <<< "${{ steps.meta.outputs.tags }}"
           for TAG in "${TAGS[@]}"; do
-            SAFE_TAG=$(echo "$TAG" | tr '/' '_')
-            docker save -o "${SAFE_TAG}.tar" "$TAG"
+            # Replace *** with actual Docker username
+            ACTUAL_TAG=$(echo "$TAG" | sed "s/\*\*\*/${{ env.DOCKER_USERNAME }}/g")
+            echo "Saving image: $ACTUAL_TAG"
+            SAFE_TAG=$(echo "$ACTUAL_TAG" | tr '/' '_')
+            if ! docker save -o "${SAFE_TAG}.tar" "$ACTUAL_TAG"; then
+              echo "Failed to save image: $ACTUAL_TAG"
+              exit 1
+            fi
           done
       - name: Combine Docker images into a single tar file
         run: |
