@@ -88,18 +88,18 @@ jobs:
           # Create output directory for SBOM
           mkdir -p sbom_output
           
-          # Use all tags directly without splitting
-          IMAGES="${{ steps.meta.outputs.tags }}"
+          # Construct image tags for full version
+          IMAGES="ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.full_version }}"
           
-          # Run SBOM generation for all images at once
+          # Run SBOM generation
           sudo docker run --rm \
             -e IMAGES=${IMAGES} \
             -e FILE_PREFIX="" \
             -e FILE_SUFFIX="" \
-            -e FILE_NAME="[TAG]" \
+            -e FILE_NAME="sbom" \
             -v "/var/run/docker.sock:/var/run/docker.sock" \
             -v "$(pwd)/sbom_output:/output" \
-            dublok/sbominify:latest
+            ghcr.io/dockforge/sbominify:latest
 
       - name: Create Release
         id: release
