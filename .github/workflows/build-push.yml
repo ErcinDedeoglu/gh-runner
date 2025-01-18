@@ -91,6 +91,9 @@ jobs:
           # Convert repository owner to lowercase
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           
+          # Login to GitHub Container Registry for the sbominify tool to access private images
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
           # Construct image tags for full version
           IMAGES="ghcr.io/${REPO_OWNER}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.full_version }}"
           
@@ -102,6 +105,7 @@ jobs:
             -e FILE_NAME="sbom" \
             -v "/var/run/docker.sock:/var/run/docker.sock" \
             -v "$(pwd)/sbom_output:/output" \
+            -v "${HOME}/.docker/config.json:/root/.docker/config.json:ro" \
             ghcr.io/dockforge/sbominify:latest
 
       - name: Create Release
