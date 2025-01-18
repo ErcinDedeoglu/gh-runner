@@ -84,33 +84,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Generate SBOM
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FULL_VERSION: ${{ steps.version.outputs.full_version }}
         run: |
-          # Create output directory for SBOM
-          mkdir -p sbom_output
-          
-          # Convert repository owner to lowercase
-          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          
-          # Login to GitHub Container Registry for the sbominify tool to access private images
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          
-          # Construct image tags for full version
-          IMAGES="ghcr.io/${REPO_OWNER}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.full_version }}"
-          
-          # Run SBOM generation
-          sudo docker run --rm \
-            -e IMAGES=${IMAGES} \
-            -e FILE_PREFIX="" \
-            -e FILE_SUFFIX="" \
-            -e FILE_NAME="sbom" \
-            -v "/var/run/docker.sock:/var/run/docker.sock" \
-            -v "$(pwd)/sbom_output:/output" \
-            -v "${HOME}/.docker/config.json:/root/.docker/config.json:ro" \
-            ghcr.io/dockforge/sbominify:latest
-
-          # List the generated SBOM files
-          echo "Generated SBOM files:"
-          ls -la $(pwd)/sbom_output
+          chmod +x .github/scripts/generate_sbom.py
+          .github/scripts/generate_sbom.py
 
       - name: Create Release
         id: release
