@@ -72,18 +72,21 @@ class DockerBuildAndPush:
 
     def build_and_push(self, tags, version):
         """Build and push Docker image"""
-        build_cmd = f"""
-        docker buildx build \
+        # Split tags string into list and create --tag arguments
+        tag_list = tags.split(',')
+        tag_args = ' '.join([f'--tag {tag}' for tag in tag_list])
+        
+        build_cmd = f"""docker buildx build \
             --platform {self.platforms} \
             --push \
-            --tag {tags} \
+            {tag_args} \
             --label "org.opencontainers.image.title={self.image_name}" \
             --label "org.opencontainers.image.version={version}" \
             --label "org.opencontainers.image.source=https://github.com/{self.github_repository}" \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
-            src
-        """
+            src"""
+        
         self.run_command(build_cmd)
 
     def save_docker_image(self, version):
