@@ -107,10 +107,15 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.full_version }}"
           BRANCH=${GITHUB_REF#refs/heads/}
+          
+          # Copy files without dots to match release naming
+          cp .vulnerability_report.txt vulnerability_report.txt
+          cp ".version_${BRANCH}.json" "version.json"
+          
           echo "Uploading release assets for version $VERSION"
           gh release upload "$VERSION" \
             "${IMAGE_NAME}.tar" \
             ".sbom/sbom.json" \
             ".sbom/sbom.txt" \
-            ".vulnerability_report.txt" \
-            ".version_${BRANCH}.json"
+            "vulnerability_report.txt" \
+            "version.json"
