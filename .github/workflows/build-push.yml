@@ -73,22 +73,20 @@ jobs:
           set -e # Exit on any error
           VERSION="${{ steps.version.outputs.full_version }}"
           
-          # Save Docker Hub image
+          # Pull and save Docker Hub image
           DOCKER_TAG="${DOCKER_USERNAME}/${IMAGE_NAME}:${VERSION}"
-          echo "Saving image: $DOCKER_TAG"
-          if ! docker save -o "dockerhub.tar" "$DOCKER_TAG"; then
-            echo "Failed to save Docker Hub image"
-            exit 1
-          fi
+          echo "Pulling Docker Hub image: $DOCKER_TAG"
+          docker pull $DOCKER_TAG
+          echo "Saving Docker Hub image: $DOCKER_TAG"
+          docker save $DOCKER_TAG > "${IMAGE_NAME}.tar"
           
-          # Save GitHub Container Registry image
+          # Pull and save GitHub Container Registry image
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           GHCR_TAG="ghcr.io/${REPO_OWNER}/${IMAGE_NAME}:${VERSION}"
-          echo "Saving image: $GHCR_TAG"
-          if ! docker save -o "ghcr.tar" "$GHCR_TAG"; then
-            echo "Failed to save GitHub Container Registry image"
-            exit 1
-          fi
+          echo "Pulling GitHub Container Registry image: $GHCR_TAG"
+          docker pull $GHCR_TAG
+          echo "Saving GitHub Container Registry image: $GHCR_TAG"
+          docker save $GHCR_TAG >> "${IMAGE_NAME}.tar"
       - name: Combine Docker images into a single tar file
         run: |
           TAGS=(${{ steps.meta.outputs.tags }})
