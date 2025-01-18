@@ -4,12 +4,10 @@ on:
     paths:
       - 'src/**'
   workflow_dispatch:
-
 env:
   IMAGE_NAME: gh-runner
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PLATFORMS: linux/amd64,linux/arm64
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -53,19 +51,14 @@ jobs:
         run: |
           # Parse tags JSON into Docker format
           TAGS_JSON='${{ steps.version.outputs.tags }}'
-
           # Convert repository owner to lowercase
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-
           # Generate Docker Hub tags
           DOCKERHUB_TAGS=$(echo "$TAGS_JSON" | jq -r '.[] | "${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:" + .')
-
           # Generate GitHub Container Registry tags
           GHCR_TAGS=$(echo "$TAGS_JSON" | jq -r '.[] | "ghcr.io/'"${REPO_OWNER}"'/${{ env.IMAGE_NAME }}:" + .')
-
           # Combine all tags into a comma-separated list
           ALL_TAGS=$(echo -e "${DOCKERHUB_TAGS}\n${GHCR_TAGS}" | paste -sd "," -)
-
           # Set output
           echo "tags=${ALL_TAGS}" >> $GITHUB_OUTPUT
 
@@ -82,6 +75,16 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Save Docker image as artifact
+        run: |
+          docker save -o ${{ env.IMAGE_NAME }}.tar ${{ steps.meta.outputs.tags }}
+
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_NAME }}.tar
 
       - name: Generate SBOM
         env:
@@ -106,3 +109,11 @@ jobs:
         run: |
           chmod +x .github/scripts/publish_release.py
           .github/scripts/publish_release.py
+
+      - name: Upload Docker image to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: ${{ env.IMAGE_NAME }}.tar
+          asset_name: ${{ env.IMAGE_NAME }}.tar
+          asset_content_type: application/octet-stream
