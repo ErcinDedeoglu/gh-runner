@@ -33,15 +33,19 @@ class DockerBuildAndPush:
         print(f"GITHUB_ACTOR: {self.github_actor}", flush=True)
 
     def log_step(self, message, start=True):
-        """Helper method to log step boundaries"""
+        """Helper method to log step boundaries with timestamps"""
+        from datetime import datetime
+        
         border = "=" * 80
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         if start:
             print(f"\n{border}", flush=True)
-            print(f"🚀 STARTING STEP: {message}", flush=True)
+            print(f"🚀 STARTING STEP: {message} ({timestamp})", flush=True)
             print(f"{border}\n", flush=True)
         else:
             print(f"\n{border}", flush=True)
-            print(f"✅ COMPLETED STEP: {message}", flush=True)
+            print(f"✅ COMPLETED STEP: {message} ({timestamp})", flush=True)
             print(f"{border}\n", flush=True)
 
     def run_command(self, command, shell=True, env=None):
@@ -113,7 +117,6 @@ class DockerBuildAndPush:
 
     def build_and_push(self, tags, version):
         """Build and push Docker image"""
-        # Split tags string into list and create --tag arguments
         tag_list = tags.split(',')
         tag_args = ' '.join([f'--tag {tag}' for tag in tag_list])
         
@@ -147,25 +150,33 @@ class DockerBuildAndPush:
             print(f"  🔄 {platform}", flush=True)
         
         try:
-            result = subprocess.run(
+            # Use Popen to get real-time output
+            process = subprocess.Popen(
                 build_cmd,
                 shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                capture_output=True,
-                env=os.environ.copy()
+                bufsize=1,
+                universal_newlines=True
             )
-            
+
             # Print output in real-time
-            if result.stdout:
-                print("\n=== Build Output ===", flush=True)
-                print(result.stdout, flush=True)
-            
-            if result.stderr:
-                print("\n=== Build Errors/Warnings ===", flush=True)
-                print(result.stderr, flush=True)
+            while True:
+                output = process.stdout.readline()
+                error = process.stderr.readline()
                 
-            if result.returncode != 0:
-                raise Exception(f"Build failed: {result.stderr}")
+                if output:
+                    print(output.strip(), flush=True)
+                if error:
+                    print(error.strip(), flush=True)
+                
+                # Check if process has finished
+                if output == '' and error == '' and process.poll() is not None:
+                    break
+            
+            if process.returncode != 0:
+                raise Exception("Build failed! Check the logs above for details.")
                 
             print("\n✅ Multi-architecture build completed successfully!", flush=True)
             
