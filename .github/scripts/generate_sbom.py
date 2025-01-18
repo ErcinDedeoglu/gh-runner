@@ -126,7 +126,7 @@ def main():
         # Update sbom.json in root
         json_file = output_dir / 'sbom.json'
         if json_file.exists():
-            update_github_file(json_file, 'sbom.json')
+            update_github_file(json_file, 'sbom/sbom.json')
 
         # Update sbom.txt in sbom directory
         txt_file = output_dir / 'sbom.txt'
