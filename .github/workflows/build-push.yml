@@ -110,12 +110,10 @@ jobs:
           
           # Copy files without dots to match release naming
           cp .vulnerability_report.txt vulnerability_report.txt
-          cp ".version_${BRANCH}.json" "version.json"
           
           echo "Uploading release assets for version $VERSION"
           gh release upload "$VERSION" \
             "${IMAGE_NAME}.tar" \
             ".sbom/sbom.json" \
             ".sbom/sbom.txt" \
-            "vulnerability_report.txt" \
-            "version.json"
+            "vulnerability_report.txt"
