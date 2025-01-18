@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import os
-import subprocess
-import logging
+import sys
 import base64
-import requests
+import logging
+import subprocess
 from pathlib import Path
+import requests
 
 # Set up logging
 logging.basicConfig(
@@ -38,25 +39,19 @@ def docker_login():
             capture_output=True
         )
         logger.info("Successfully logged in to GitHub Container Registry")
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         logger.error(f"Failed to login to GitHub Container Registry: {e}")
-        raise
-    except KeyError as e:
-        logger.error(f"Missing required environment variable: {e}")
         raise
 
 def generate_sbom():
     """Generate SBOM using sbominify Docker container."""
     try:
-        # Get required environment variables
         repo_owner = os.environ['GITHUB_REPOSITORY_OWNER'].lower()
         image_name = os.environ['IMAGE_NAME']
         full_version = os.environ['FULL_VERSION']
         
-        # Construct image tag
         image_tag = f"ghcr.io/{repo_owner}/{image_name}:{full_version}"
         
-        # Prepare Docker command for SBOM generation
         sbom_cmd = [
             'docker', 'run', '--rm',
             '-e', f'IMAGES={image_tag}',
@@ -69,72 +64,54 @@ def generate_sbom():
             'ghcr.io/dockforge/sbominify:latest'
         ]
         
-        # Run SBOM generation
         subprocess.run(sbom_cmd, check=True)
         logger.info("Successfully generated SBOM")
         
-        # List generated files
         output_dir = Path('sbom_output')
         logger.info("Generated SBOM files:")
         for file in output_dir.iterdir():
             logger.info(f"- {file.name}")
             
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         logger.error(f"Failed to generate SBOM: {e}")
         raise
-    except KeyError as e:
-        logger.error(f"Missing required environment variable: {e}")
-        raise
 
-def upload_to_github(file_path: Path, github_path: str):
-    """Upload a file to GitHub repository."""
+def update_github_file(file_path: Path, github_path: str):
+    """Update or create a file in GitHub repository."""
     try:
         github_token = os.environ['GITHUB_TOKEN']
-        repo = os.environ['GITHUB_REPOSITORY']
-        ref = os.environ.get('GITHUB_SHA', 'main')  # Default to 'main' if SHA not available
-
+        github_repo = os.environ['GITHUB_REPOSITORY']
+        
         headers = {
             'Authorization': f'token {github_token}',
             'Accept': 'application/vnd.github.v3+json'
         }
 
-        # API base URL
-        api_url = f'https://api.github.com/repos/{repo}/contents/{github_path}'
+        url = f'https://api.github.com/repos/{github_repo}/contents/{github_path}'
 
         # Read file content
         with open(file_path, 'rb') as f:
             content = base64.b64encode(f.read()).decode()
 
         # Check if file exists
-        try:
-            response = requests.get(api_url, headers=headers)
-            response.raise_for_status()
-            # File exists, get its SHA
-            sha = response.json()['sha']
-            exists = True
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
-                exists = False
-            else:
-                raise
-
-        # Prepare the request data
+        response = requests.get(url, headers=headers)
+        
         data = {
             'message': f'Update {github_path}',
             'content': content,
-            'branch': ref
         }
 
-        if exists:
-            data['sha'] = sha
+        if response.status_code == 200:
+            # File exists, include its SHA
+            data['sha'] = response.json()['sha']
 
-        # Upload file
-        response = requests.put(api_url, headers=headers, json=data)
+        # Create or update file
+        response = requests.put(url, headers=headers, json=data)
         response.raise_for_status()
-        logger.info(f"Successfully uploaded {github_path}")
+        logger.info(f"Successfully updated {github_path}")
 
     except Exception as e:
-        logger.error(f"Failed to upload {github_path}: {e}")
+        logger.error(f"Failed to update {github_path}: {e}")
         raise
 
 def main():
@@ -144,22 +121,21 @@ def main():
         docker_login()
         generate_sbom()
 
-        # Upload files to GitHub
         output_dir = Path('sbom_output')
         
-        # Upload sbom.json to root
+        # Update sbom.json in root
         json_file = output_dir / 'sbom.json'
         if json_file.exists():
-            upload_to_github(json_file, 'sbom.json')
+            update_github_file(json_file, 'sbom.json')
 
-        # Create sbom directory and upload sbom.txt
+        # Update sbom.txt in sbom directory
         txt_file = output_dir / 'sbom.txt'
         if txt_file.exists():
-            upload_to_github(txt_file, 'sbom/sbom.txt')
+            update_github_file(txt_file, 'sbom/sbom.txt')
 
     except Exception as e:
         logger.error(f"SBOM generation and upload failed: {e}")
-        raise
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
