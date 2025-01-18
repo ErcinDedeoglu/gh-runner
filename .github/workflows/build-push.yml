@@ -88,10 +88,10 @@ jobs:
           # Create output directory for SBOM
           mkdir -p sbom_output
           
-          # Extract image tags and convert to comma-separated list
-          IMAGES=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | head -n 1)
+          # Use all tags directly without splitting
+          IMAGES="${{ steps.meta.outputs.tags }}"
           
-          # Run SBOM generation
+          # Run SBOM generation for all images at once
           sudo docker run --rm \
             -e IMAGES=${IMAGES} \
             -e FILE_PREFIX="" \
