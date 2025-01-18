@@ -130,29 +130,31 @@ class DockerBuildAndPush:
             # Step 1: Update version
             version_info = self.update_version()
             version = os.getenv("FULL_VERSION")  # Set by update_version.py
+            print(f"Version info: {version_info}")
+            print(f"Full version: {version}")
 
             # Step 2: Setup Docker
             self.setup_qemu()
             self.setup_buildx()
-
+            
             # Step 3: Docker login
             self.docker_login()
-
+            
             # Step 4: Generate tags and build/push
-            tags = self.generate_docker_tags(version_info)
+            tags = self.generate_docker_tags(json.loads(version_info))  # Parse the JSON string here
+            print(f"Generated tags: {tags}")
             self.build_and_push(tags, version)
-
+            
             # Step 5: Save Docker image
             self.save_docker_image(version)
-
+            
             # Step 6: Generate reports
             self.generate_reports(version)
-
+            
             # Step 7: Create release and upload assets
             self.create_release(version)
-
+            
             print("Workflow completed successfully")
-
         except Exception as e:
             print(f"Error: {str(e)}")
             sys.exit(1)
