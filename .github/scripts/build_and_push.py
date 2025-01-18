@@ -134,13 +134,44 @@ class DockerBuildAndPush:
             --label "org.opencontainers.image.source=https://github.com/{self.github_repository}" \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
+            --progress=plain \
             src"""
         
         print("\n=== Docker Build Command ===", flush=True)
         print(build_cmd, flush=True)
         print("=========================\n", flush=True)
-    
-        self.run_command(build_cmd)
+        
+        print("⏳ Starting multi-architecture build (this may take several minutes)...", flush=True)
+        print("Building for platforms:", flush=True)
+        for platform in self.platforms.split(','):
+            print(f"  🔄 {platform}", flush=True)
+        
+        try:
+            result = subprocess.run(
+                build_cmd,
+                shell=True,
+                text=True,
+                capture_output=True,
+                env=os.environ.copy()
+            )
+            
+            # Print output in real-time
+            if result.stdout:
+                print("\n=== Build Output ===", flush=True)
+                print(result.stdout, flush=True)
+            
+            if result.stderr:
+                print("\n=== Build Errors/Warnings ===", flush=True)
+                print(result.stderr, flush=True)
+                
+            if result.returncode != 0:
+                raise Exception(f"Build failed: {result.stderr}")
+                
+            print("\n✅ Multi-architecture build completed successfully!", flush=True)
+            
+        except Exception as e:
+            print("\n❌ Build failed!", flush=True)
+            raise e
 
     def save_docker_image(self, version):
         """Save Docker image to tar file"""
