@@ -34,21 +34,15 @@ def generate_tags(version_nums: str, suffix: str, build_number: int) -> List[str
     tags.append(suffix.lstrip('-') if suffix else 'latest')
     return tags
 
-def get_existing_version_file(headers: Dict, github_repo: str) -> tuple[str, Dict, str]:
-    """Find the most recent version file in the repository."""
-    url = f"https://api.github.com/repos/{github_repo}/contents"
+def get_existing_version_file(headers: Dict, github_repo: str, branch: str) -> tuple[Dict, str]:
+    """Get content of version file for specific branch from repository."""
+    filename = f"version_{branch}.json"
+    url = f"https://api.github.com/repos/{github_repo}/contents/{filename}"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        files = response.json()
-        version_files = [f for f in files if f['name'].startswith('version_') and f['name'].endswith('.json')]
-        if version_files:
-            # Get the latest version file
-            latest_file = sorted(version_files, key=lambda x: x['name'])[-1]
-            file_response = requests.get(latest_file['url'], headers=headers)
-            if file_response.status_code == 200:
-                content = json.loads(base64.b64decode(file_response.json()['content']))
-                return latest_file['name'], content, file_response.json()['sha']
-    return None, None, None
+        content = json.loads(base64.b64decode(response.json()['content']))
+        return content, response.json()['sha']
+    return None, None
 
 def main():
     # Get environment variables
@@ -69,7 +63,7 @@ def main():
     }
 
     # Get existing version file if it exists
-    _, existing_content, _ = get_existing_version_file(headers, github_repo)
+    existing_content, sha = get_existing_version_file(headers, github_repo, branch)
     build_number = (existing_content['build_number'] + 1) if existing_content else 1
 
     # Generate version information
@@ -84,15 +78,17 @@ def main():
         'tags': tags
     }
 
-    # Create new version file
-    new_filename = f"version_{full_version}.json"
-    url = f"https://api.github.com/repos/{github_repo}/contents/{new_filename}"
+    # Update or create version file
+    filename = f"version_{branch}.json"
+    url = f"https://api.github.com/repos/{github_repo}/contents/{filename}"
     
     content = base64.b64encode(json.dumps(version_data, indent=2).encode()).decode()
     data = {
         'message': f'Update version to {full_version}',
         'content': content,
     }
+    if sha:
+        data['sha'] = sha
 
     response = requests.put(url, headers=headers, json=data)
     if not response.ok:
