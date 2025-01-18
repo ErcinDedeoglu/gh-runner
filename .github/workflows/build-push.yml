@@ -80,14 +80,16 @@ jobs:
         run: |
           TAGS=(${{ steps.meta.outputs.tags }})
           for TAG in "${TAGS[@]}"; do
-            docker save -o "${TAG//\//_}.tar" "$TAG"
+            SAFE_TAG=$(echo "$TAG" | tr '/' '_')
+            docker save -o "${SAFE_TAG}.tar" "$TAG"
           done
 
       - name: Combine Docker images into a single tar file
         run: |
           TAGS=(${{ steps.meta.outputs.tags }})
           for TAG in "${TAGS[@]}"; do
-            tar -rf "${{ env.IMAGE_NAME }}.tar" "${TAG//\//_}.tar"
+            SAFE_TAG=$(echo "$TAG" | tr '/' '_')
+            tar -rf "${{ env.IMAGE_NAME }}.tar" "${SAFE_TAG}.tar"
           done
 
       - name: Upload Docker image as artifact
