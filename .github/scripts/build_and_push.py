@@ -128,7 +128,7 @@ class DockerBuildAndPush:
         print(build_cmd, flush=True)
         print("=========================\n", flush=True)
     
-    self.run_command(build_cmd)
+        self.run_command(build_cmd)
 
     def save_docker_image(self, version):
         """Save Docker image to tar file"""
