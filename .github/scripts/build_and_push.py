@@ -128,6 +128,7 @@ class DockerBuildAndPush:
         print(f"Version: {version}", flush=True)
         print("=========================\n", flush=True)
         
+        # Modified build command with more verbose output flags
         build_cmd = f"""docker buildx build \
             --platform {self.platforms} \
             --push \
@@ -138,6 +139,8 @@ class DockerBuildAndPush:
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
             --progress=plain \
+            --no-cache \
+            -v \
             src"""
         
         print("\n=== Docker Build Command ===", flush=True)
@@ -150,38 +153,41 @@ class DockerBuildAndPush:
             print(f"  🔄 {platform}", flush=True)
         
         try:
-            # Use Popen to get real-time output
+            # First, check Docker and Buildx status
+            print("\n=== Checking Docker Status ===", flush=True)
+            subprocess.run("docker info", shell=True, check=True)
+            subprocess.run("docker buildx ls", shell=True, check=True)
+            
+            # Use Popen with unbuffered output
             process = subprocess.Popen(
                 build_cmd,
                 shell=True,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.STDOUT,  # Combine stdout and stderr
                 text=True,
                 bufsize=1,
+                env={**os.environ, 'DOCKER_BUILDKIT': '1'},
                 universal_newlines=True
             )
 
-            # Print output in real-time
+            print("\n=== Build Progress ===", flush=True)
             while True:
-                output = process.stdout.readline()
-                error = process.stderr.readline()
-                
-                if output:
-                    print(output.strip(), flush=True)
-                if error:
-                    print(error.strip(), flush=True)
-                
-                # Check if process has finished
-                if output == '' and error == '' and process.poll() is not None:
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
                     break
-            
-            if process.returncode != 0:
-                raise Exception("Build failed! Check the logs above for details.")
+                if line:
+                    print(line.rstrip(), flush=True)
+                    
+            # Get the return code
+            return_code = process.poll()
+            if return_code != 0:
+                raise Exception(f"Build failed with return code {return_code}")
                 
             print("\n✅ Multi-architecture build completed successfully!", flush=True)
             
         except Exception as e:
             print("\n❌ Build failed!", flush=True)
+            print(f"Error: {str(e)}", flush=True)
             raise e
 
     def save_docker_image(self, version):
@@ -225,6 +231,12 @@ class DockerBuildAndPush:
     def run(self):
         """Execute all steps in sequence"""
         try:
+            # Verify Docker setup
+            print("\n=== Verifying Docker Setup ===", flush=True)
+            subprocess.run("docker version", shell=True, check=True)
+            subprocess.run("docker buildx version", shell=True, check=True)
+            subprocess.run("docker buildx ls", shell=True, check=True)
+            print("=== Docker Setup Verified ===\n", flush=True)
             # Step 1: Update version
             self.log_step("UPDATE VERSION")
             version_info = self.update_version()
