@@ -102,9 +102,9 @@ jobs:
           chmod +x .github/scripts/publish_release.py
           .github/scripts/publish_release.py
       - name: Upload Docker image to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: ${{ env.IMAGE_NAME }}.tar
-          asset_name: ${{ env.IMAGE_NAME }}.tar
-          asset_content_type: application/octet-stream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.full_version }}"
+          echo "Uploading ${IMAGE_NAME}.tar to release $VERSION"
+          gh release upload "$VERSION" "${IMAGE_NAME}.tar"
