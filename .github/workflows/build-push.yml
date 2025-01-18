@@ -108,6 +108,9 @@ jobs:
             -v "${HOME}/.docker/config.json:/root/.docker/config.json:ro" \
             ghcr.io/dockforge/sbominify:latest
 
+          # List the generated SBOM files
+          ls -la $(pwd)/sbom_output
+
       - name: Create Release
         id: release
         env:
