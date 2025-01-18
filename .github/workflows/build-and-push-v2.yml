@@ -21,26 +21,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-    #   - name: Set up Python
-    #     uses: actions/setup-python@v4
-    #     with:
-    #       python-version: '3.x'
-
-    #   - name: Install dependencies
-    #     run: |
-    #       python -m pip install --upgrade pip
-    #       pip install requests
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Run build and push script
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Changed to match the expected variable name
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          pip install requests
           chmod +x .github/scripts/build_and_push.py
           python .github/scripts/build_and_push.py
