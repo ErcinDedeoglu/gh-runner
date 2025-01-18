@@ -12,10 +12,9 @@ def get_version_file_content(github_token: str, github_repo: str, branch: str) -
         'Authorization': f'token {github_token}',
         'Accept': 'application/vnd.github.v3+json'
     }
-    
-    version_file = f"versions/{branch}.json"
+    # Look for version file in root directory
+    version_file = f"version_{branch}.json"
     url = f"https://api.github.com/repos/{github_repo}/contents/{version_file}"
-    
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         return json.loads(base64.b64decode(response.json()['content']))
@@ -27,13 +26,11 @@ def create_tag(github_token: str, github_repo: str, tag_name: str, sha: str) -> 
         'Authorization': f'token {github_token}',
         'Accept': 'application/vnd.github.v3+json'
     }
-    
     url = f"https://api.github.com/repos/{github_repo}/git/refs"
     data = {
         'ref': f'refs/tags/{tag_name}',
         'sha': sha
     }
-    
     response = requests.post(url, headers=headers, json=data)
     return response.status_code == 201
 
@@ -43,7 +40,6 @@ def create_release(github_token: str, github_repo: str, version_data: Dict, sha:
         'Authorization': f'token {github_token}',
         'Accept': 'application/vnd.github.v3+json'
     }
-    
     url = f"https://api.github.com/repos/{github_repo}/releases"
     
     # Extract suffix if exists
@@ -55,15 +51,14 @@ def create_release(github_token: str, github_repo: str, version_data: Dict, sha:
     
     # Create release notes with version and tags information
     release_notes = f"""Version {version}
-    
 Build Number: {version_data['build_number']}
 Branch: {version_data['branch']}
 Release Type: {'Pre-release' if is_prerelease else 'Regular Release'}
-    
+
 Docker Tags:
 {chr(10).join(['- ' + tag for tag in version_data['tags']])}
 """
-    
+
     data = {
         'tag_name': version,
         'target_commitish': sha,
@@ -72,7 +67,7 @@ Docker Tags:
         'draft': False,
         'prerelease': is_prerelease
     }
-    
+
     try:
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 201:
@@ -92,29 +87,29 @@ def main():
     github_repo = os.environ.get('GITHUB_REPOSITORY')
     branch = os.environ.get('GITHUB_REF').replace('refs/heads/', '')
     sha = os.environ.get('GITHUB_SHA')
-    
+
     if not all([github_token, github_repo, branch, sha]):
         print("Missing required environment variables")
         sys.exit(1)
-    
+
     # Get version information
     version_data = get_version_file_content(github_token, github_repo, branch)
     if not version_data:
         print("Failed to get version information")
         sys.exit(1)
-    
+
     # Create tag
     if not create_tag(github_token, github_repo, version_data['version'], sha):
         print("Failed to create tag")
         sys.exit(1)
     print(f"Successfully created tag: {version_data['version']}")
-    
+
     # Create release
     if not create_release(github_token, github_repo, version_data, sha):
         print("Failed to create release")
         sys.exit(1)
     print(f"Successfully created release: {version_data['version']}")
-    
+
     # Set output for GitHub Actions
     with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
         f.write(f"version={version_data['version']}\n")
