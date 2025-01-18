@@ -88,8 +88,11 @@ jobs:
           # Create output directory for SBOM
           mkdir -p sbom_output
           
+          # Convert repository owner to lowercase
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          
           # Construct image tags for full version
-          IMAGES="ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.full_version }}"
+          IMAGES="ghcr.io/${REPO_OWNER}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.full_version }}"
           
           # Run SBOM generation
           sudo docker run --rm \
