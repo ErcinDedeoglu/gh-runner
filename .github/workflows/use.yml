@@ -1,0 +1,10 @@
+# Caller workflow (use.yml)
+name: Caller workflow
+on: [push]
+jobs:
+  call_reusable:
+    uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
+    secrets:
+      token: ${{ secrets.PRIVATE_REPO_PAT }}
+    with:
+      username: "John"
