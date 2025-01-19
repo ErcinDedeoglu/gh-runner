@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 jobs:
   call_reusable:
-    uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
+    uses: github.com/dubloksoftware/workflows/.github/workflows/reusable.yml@main
     # or try with full path:
-    # uses: github.com/dubloksoftware/workflows/.github/workflows/reusable.yml@main
+    # uses: 
     permissions:
       contents: read
     with:
