@@ -8,12 +8,18 @@ on:
 
 jobs:
   build-and-push:
-    uses: dubloksoftware/workflows/.github/workflows/build-and-push.yml@main
-    with:
-      image_name: my-app-image
-      platforms: linux/amd64,linux/arm64
-      # full_version: v1.2.3
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      # Authenticate with GitHub using PAT
+      - name: Authenticate with GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_PAT }}
+        run: |
+          echo "${{ secrets.PRIVATE_REPO_PAT }}" | gh auth login --with-token
+
+      # Use the reusable workflow
+      - name: Use Reusable Workflow
+        uses: dubloksoftware/workflows/.github/workflows/build-and-push.yml@main
+        with:
+          image_name: my-private-image
+          platforms: linux/amd64,linux/arm64
