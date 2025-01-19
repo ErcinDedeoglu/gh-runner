@@ -1,4 +1,4 @@
-name: Use Reusable Workflow
+name: Use Reusable Workflow from Private Repo
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   build-and-push:
     uses: dubloksoftware/workflows/.github/workflows/build-and-push.yml@main
     with:
-      image_name: private-image
+      image_name: my-private-image:latest
       platforms: linux/amd64,linux/arm64
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
