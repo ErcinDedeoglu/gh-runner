@@ -23,8 +23,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip install requests
-          chmod +x .github/scripts/update_version.py
-          .github/scripts/update_version.py
+          chmod +x .github/build-push/update_version.py
+          .github/build-push/update_version.py
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -85,22 +85,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FULL_VERSION: ${{ steps.version.outputs.full_version }}
         run: |
-          chmod +x .github/scripts/generate_sbom.py
-          .github/scripts/generate_sbom.py
+          chmod +x .github/build-push/generate_sbom.py
+          .github/build-push/generate_sbom.py
       - name: Generate Vulnerability Report
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FULL_VERSION: ${{ steps.version.outputs.full_version }}
         run: |
-          chmod +x .github/scripts/generate_vulnerability_report.py
-          .github/scripts/generate_vulnerability_report.py
+          chmod +x .github/build-push/generate_vulnerability_report.py
+          .github/build-push/generate_vulnerability_report.py
       - name: Create Release
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          chmod +x .github/scripts/publish_release.py
-          .github/scripts/publish_release.py
+          chmod +x .github/build-push/publish_release.py
+          .github/build-push/publish_release.py
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
