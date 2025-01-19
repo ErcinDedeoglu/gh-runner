@@ -1,0 +1,18 @@
+# .github/workflows/docker.yml
+name: Docker Build
+on:
+  push:
+    paths:
+      - 'src/**'
+  workflow_dispatch:
+
+jobs:
+  docker:
+    uses: dubloksoftware/workflows/.github/workflows/docker-build-push.yml@main
+    with:
+      image_name: ${{ github.event.repository.name }}
+      platforms: 'linux/amd64,linux/arm64'
+      context_path: 'src'
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
