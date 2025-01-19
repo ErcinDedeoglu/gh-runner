@@ -8,6 +8,9 @@ on:
 
 jobs:
   docker:
+    permissions:
+      contents: write    # Add this permissions block
+      packages: write    # to allow write access
     uses: dubloksoftware/workflows/.github/workflows/docker-build-push.yml@main
     with:
       image_name: ${{ github.event.repository.name }}
