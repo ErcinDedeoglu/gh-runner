@@ -1,6 +1,10 @@
 # use.yml
 name: Caller workflow
-on: [push]
+on:
+  push:
+    paths:
+      - 'src/**'
+  workflow_dispatch:
 jobs:
   call_reusable:
     uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
