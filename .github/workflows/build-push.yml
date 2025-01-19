@@ -1,13 +1,25 @@
 name: Build and Push Docker Image
+
 on:
-  push:
-    paths:
-      - 'src/**'
-  workflow_dispatch:
-env:
-  IMAGE_NAME: ${{ github.event.repository.name }}
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  PLATFORMS: linux/amd64,linux/arm64
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      platforms:
+        required: true
+        type: string
+      full_version:
+        required: false
+        type: string
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_TOKEN:
+        required: true
+      GITHUB_TOKEN:
+        required: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -17,6 +29,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Update version
         id: version
         env:
@@ -25,75 +38,67 @@ jobs:
           pip install requests
           chmod +x .github/workflows/build-push/update_version.py
           .github/workflows/build-push/update_version.py
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate Docker Tags
         id: meta
         run: |
-          # Parse tags JSON into Docker format
-          TAGS_JSON='${{ steps.version.outputs.tags }}'
-          # Convert repository owner to lowercase
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          # Generate Docker Hub tags
-          DOCKERHUB_TAGS=$(echo "$TAGS_JSON" | jq -r '.[] | "${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:" + .')
-          # Generate GitHub Container Registry tags
-          GHCR_TAGS=$(echo "$TAGS_JSON" | jq -r '.[] | "ghcr.io/'"${REPO_OWNER}"'/${{ env.IMAGE_NAME }}:" + .')
-          # Combine all tags into a comma-separated list
-          ALL_TAGS=$(echo -e "${DOCKERHUB_TAGS}\n${GHCR_TAGS}" | paste -sd "," -)
-          # Set output
-          echo "tags=${ALL_TAGS}" >> $GITHUB_OUTPUT
+          TAGS="${{ inputs.image_name }}:latest,${{ inputs.image_name }}:${{ inputs.full_version }}"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: src
-          platforms: ${{ env.PLATFORMS }}
-          push: ${{ github.event_name != 'pull_request' }}
+          platforms: ${{ inputs.platforms }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.version=${{ steps.version.outputs.full_version }}
+            org.opencontainers.image.title=${{ inputs.image_name }}
+            org.opencontainers.image.version=${{ inputs.full_version }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
       - name: Save Docker image
         run: |
-          set -e # Exit on any error
-          VERSION="${{ steps.version.outputs.full_version }}"
-          
-          # Pull and save GitHub Container Registry image
-          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          GHCR_TAG="ghcr.io/${REPO_OWNER}/${IMAGE_NAME}:${VERSION}"
-          echo "Pulling GitHub Container Registry image: $GHCR_TAG"
-          docker pull $GHCR_TAG
-          echo "Saving GitHub Container Registry image: $GHCR_TAG"
-          docker save $GHCR_TAG -o "${IMAGE_NAME}.tar"
+          docker save ${{ steps.meta.outputs.tags }} -o "${{ inputs.image_name }}.tar"
+
       - name: Generate SBOM
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FULL_VERSION: ${{ steps.version.outputs.full_version }}
+          FULL_VERSION: ${{ inputs.full_version }}
         run: |
           chmod +x .github/workflows/build-push/generate_sbom.py
           .github/workflows/build-push/generate_sbom.py
+
       - name: Generate Vulnerability Report
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FULL_VERSION: ${{ steps.version.outputs.full_version }}
+          FULL_VERSION: ${{ inputs.full_version }}
         run: |
           chmod +x .github/workflows/build-push/generate_vulnerability_report.py
           .github/workflows/build-push/generate_vulnerability_report.py
+
       - name: Create Release
         id: release
         env:
@@ -101,19 +106,15 @@ jobs:
         run: |
           chmod +x .github/workflows/build-push/publish_release.py
           .github/workflows/build-push/publish_release.py
+
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ steps.version.outputs.full_version }}"
-          BRANCH=${GITHUB_REF#refs/heads/}
-          
-          # Copy files without dots to match release naming
+          VERSION=${{ inputs.full_version }}
           cp .vulnerability_report.txt vulnerability_report.txt
-          
-          echo "Uploading release assets for version $VERSION"
           gh release upload "$VERSION" \
-            "${IMAGE_NAME}.tar" \
+            "${{ inputs.image_name }}.tar" \
             ".sbom/sbom.json" \
             ".sbom/sbom.txt" \
             "vulnerability_report.txt"
