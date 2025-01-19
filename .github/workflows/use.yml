@@ -6,5 +6,3 @@ jobs:
     uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
     secrets:
       token: ${{ secrets.PRIVATE_REPO_PAT }}
-    with:
-      username: "John"
