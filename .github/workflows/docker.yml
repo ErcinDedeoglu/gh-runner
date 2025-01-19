@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write    # Add this permissions block
       packages: write    # to allow write access
-    uses: dubloksoftware/workflows/.github/workflows/build-and-push/workflow.yml@main
+    uses: dubloksoftware/workflows/.github/workflows/build-and-push.yml@main
     with:
       image_name: ${{ github.event.repository.name }}
       platforms: 'linux/amd64,linux/arm64'
