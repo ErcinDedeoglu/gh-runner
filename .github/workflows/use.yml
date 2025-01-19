@@ -1,8 +1,12 @@
-# Caller workflow (use.yml)
+# use.yml
 name: Caller workflow
 on: [push]
 jobs:
   call_reusable:
     uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
+    permissions:
+      contents: read
+    with:
+      username: "John"    # This must match the input name defined above
     secrets:
       token: ${{ secrets.PRIVATE_REPO_PAT }}
