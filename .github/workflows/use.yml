@@ -8,9 +8,11 @@ on:
 jobs:
   call_reusable:
     uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
+    # or try with full path:
+    # uses: github.com/dubloksoftware/workflows/.github/workflows/reusable.yml@main
     permissions:
       contents: read
     with:
-      username: "John"    # This must match the input name defined above
+      username: "John"
     secrets:
       token: ${{ secrets.PRIVATE_REPO_PAT }}
