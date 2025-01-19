@@ -1,25 +1,8 @@
-name: Use Reusable Workflow
-
-on:
-  push:
-    paths:
-      - 'src/**'
-  workflow_dispatch:
+name: Caller Workflow
+on: [push]
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      # Authenticate with GitHub using PAT
-      - name: Authenticate with GitHub
-        env:
-          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_PAT }}
-        run: |
-          echo "${{ secrets.PRIVATE_REPO_PAT }}" | gh auth login --with-token
-
-      # Use the reusable workflow
-      - name: Use Reusable Workflow
-        uses: dubloksoftware/workflows/.github/workflows/build-and-push.yml@main
-        with:
-          image_name: my-private-image
-          platforms: linux/amd64,linux/arm64
+  call_reusable:
+    uses: dubloksoftware/workflows/.github/workflows/reusable.yml@main
+    secrets:
+      token: ${{ secrets.PRIVATE_REPO_PAT }}
