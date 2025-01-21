@@ -12,6 +12,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      actions: write
     uses: dubloksoftware/workflows/.github/workflows/build-and-push.yml@main
     with:
       image_name: ${{ github.event.repository.name }}
