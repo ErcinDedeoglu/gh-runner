@@ -10,18 +10,18 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-requests \
+    python3-venv \
     kmod \
     fuse-overlayfs \
     iptables \
     linux-modules-extra-$(uname -r) \
     && rm -rf /var/lib/apt/lists/*
 
-# Create pip symlink for compatibility
-RUN ln -sf /usr/bin/pip3 /usr/bin/pip
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Upgrade pip and install requests
-RUN pip3 install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir requests
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir requests
 
 ARG RUNNER_VERSION="2.321.0"
 ARG RUNNER_ARCH="x64"
