@@ -1,7 +1,9 @@
 FROM ubuntu:24.04
+
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     bash \
     curl \
     git \
@@ -10,14 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     docker.io \
     libicu-dev \
     python3 \
-    python3-pip \
-    python3-requests \
+    python3-venv \
     kmod \
     fuse-overlayfs \
     iptables \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --break-system-packages --no-cache-dir requests
+RUN python3 -m venv /venv
+RUN /venv/bin/pip install requests
+
+ENV PATH="/venv/bin:$PATH"
 
 ARG RUNNER_VERSION="2.321.0"
 ARG RUNNER_ARCH="x64"
