@@ -5,17 +5,11 @@ services:
       - RUNNER_NAME=dind-runner
       - RUNNER_URL=https://github.com/your-org-or-repo
       - GITHUB_PAT=${GITHUB_PAT}
+      - RUNNER_LABELS=docker,dind,ubuntu-latest,4cpu
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     privileged: true
     restart: unless-stopped
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
 
 networks:
   default:
