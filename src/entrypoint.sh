@@ -36,6 +36,7 @@ export RUNNER_ALLOW_RUNASROOT=1
 BASE_RUNNER_NAME=${RUNNER_NAME:-"dind-runner"}
 RUNNER_URL=${RUNNER_URL}
 GITHUB_PAT=${GITHUB_PAT}
+RUNNER_LABELS=${RUNNER_LABELS:-""}
 
 # Generate timestamp in the required format
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
@@ -48,8 +49,9 @@ if [[ -z "$RUNNER_URL" || -z "$GITHUB_PAT" ]]; then
     exit 1
 fi
 
-# Print the generated runner name
+# Print the generated runner name and labels
 echo "Generated runner name: $RUNNER_NAME"
+echo "Runner labels: $RUNNER_LABELS"
 
 # Start background cleanup process
 python3 /actions-runner/tools/background_cleanup.py "$RUNNER_URL" "$GITHUB_PAT" &
@@ -65,7 +67,11 @@ echo "Successfully obtained runner token"
 
 # Configure the GitHub Actions runner
 cd /actions-runner
-./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --unattended
+if [ -z "$RUNNER_LABELS" ]; then
+    ./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --unattended
+else
+    ./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --labels "$RUNNER_LABELS" --unattended
+fi
 
 # Start the GitHub Actions runner
 ./run.sh
