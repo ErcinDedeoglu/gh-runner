@@ -16,6 +16,7 @@ RUN apt-get update && \
     kmod \
     fuse-overlayfs \
     iptables \
+    gh \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv /venv
