@@ -1,5 +1,7 @@
 FROM ubuntu:24.04
-RUN apt-get update && apt-get install -y \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     curl \
     git \
@@ -10,13 +12,11 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-requests \
-    python3-full \
     kmod \
     fuse-overlayfs \
     iptables \
     && rm -rf /var/lib/apt/lists/*
 
-# Install only requests package
 RUN pip3 install --break-system-packages --no-cache-dir requests
 
 ARG RUNNER_VERSION="2.321.0"
