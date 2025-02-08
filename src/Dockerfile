@@ -10,18 +10,14 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-requests \
-    python3-venv \
+    python3-full \
     kmod \
     fuse-overlayfs \
     iptables \
-    linux-modules-extra-$(uname -r) \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir requests
+# Install only requests package
+RUN pip3 install --break-system-packages --no-cache-dir requests
 
 ARG RUNNER_VERSION="2.321.0"
 ARG RUNNER_ARCH="x64"
