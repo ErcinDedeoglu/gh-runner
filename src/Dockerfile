@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     docker.io \
     libicu-dev \
     python3 \
+    python3-pip \
     python3-requests \
     kmod \
     fuse-overlayfs \
@@ -15,9 +16,15 @@ RUN apt-get update && apt-get install -y \
     linux-modules-extra-$(uname -r) \
     && rm -rf /var/lib/apt/lists/*
 
+# Create pip symlink for compatibility
+RUN ln -sf /usr/bin/pip3 /usr/bin/pip
+
+# Upgrade pip and install requests
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir requests
+
 ARG RUNNER_VERSION="2.321.0"
 ARG RUNNER_ARCH="x64"
-
 RUN mkdir -p /actions-runner && cd /actions-runner \
     && curl -o actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz \
     && tar xzf ./actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz \
