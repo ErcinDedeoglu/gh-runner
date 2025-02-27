@@ -639,7 +639,7 @@ libgdbm6t64                                                                   1.
 libgmp10                                                                      2:6.3.0+dfsg-2ubuntu6                  deb                          
 libgnutls30t64                                                                3.8.3-1.1ubuntu3.2                     deb                          
 libgpg-error0                                                                 1.47-3build2                           deb                          
-libgssapi-krb5-2                                                              1.20.1-6ubuntu2.3                      deb                          
+libgssapi-krb5-2                                                              1.20.1-6ubuntu2.4                      deb                          
 libhogweed6t64                                                                3.9.1-2.2build1.1                      deb                          
 libicu-dev                                                                    74.2-1ubuntu3.1                        deb                          
 libicu74                                                                      74.2-1ubuntu3.1                        deb                          
@@ -647,12 +647,12 @@ libidn2-0                                                                     2.
 libip4tc2                                                                     1.8.10-3ubuntu2                        deb                          
 libip6tc2                                                                     1.8.10-3ubuntu2                        deb                          
 libjq1                                                                        1.7.1-3build1                          deb                          
-libk5crypto3                                                                  1.20.1-6ubuntu2.3                      deb                          
+libk5crypto3                                                                  1.20.1-6ubuntu2.4                      deb                          
 libkeyutils1                                                                  1.6.3-3build1                          deb                          
 libkmod2                                                                      31+20240202-2ubuntu7.1                 deb                          
-libkrb5-3                                                                     1.20.1-6ubuntu2.3                      deb                          
-libkrb5support0                                                               1.20.1-6ubuntu2.3                      deb                          
-libldap2                                                                      2.6.7+dfsg-1~exp1ubuntu8.1             deb                          
+libkrb5-3                                                                     1.20.1-6ubuntu2.4                      deb                          
+libkrb5support0                                                               1.20.1-6ubuntu2.4                      deb                          
+libldap2                                                                      2.6.7+dfsg-1~exp1ubuntu8.2             deb                          
 liblz4-1                                                                      1.9.4-1build1.1                        deb                          
 liblzma5                                                                      5.6.1+really5.4.5-1build0.1            deb                          
 libmd0                                                                        1.1.0-2build1                          deb                          
@@ -687,8 +687,8 @@ libperl5.38t64                                                                5.
 libproc2-0                                                                    2:4.0.4-4ubuntu3.2                     deb                          
 libpsl5t64                                                                    0.21.2-1.1build1                       deb                          
 libpython3-stdlib                                                             3.12.3-0ubuntu2                        deb                          
-libpython3.12-minimal                                                         3.12.3-1ubuntu0.4                      deb                          
-libpython3.12-stdlib                                                          3.12.3-1ubuntu0.4                      deb                          
+libpython3.12-minimal                                                         3.12.3-1ubuntu0.5                      deb                          
+libpython3.12-stdlib                                                          3.12.3-1ubuntu0.5                      deb                          
 libreadline8t64                                                               8.2-4build1                            deb                          
 librtmp1                                                                      2.4+20151223.gitfa8646d.1-2build7      deb                          
 libsasl2-2                                                                    2.1.28+dfsg1-5ubuntu3.1                deb                          
@@ -703,6 +703,7 @@ libsqlite3-0                                                                  3.
 libss2                                                                        1.47.0-2.4~exp1ubuntu4.1               deb                          
 libssh-4                                                                      0.10.6-2build2                         deb                          
 libssl3t64                                                                    3.0.13-0ubuntu3.4                      deb                          
+libssl3t64                                                                    3.0.13-0ubuntu3.5                      deb                          
 libstdc++6                                                                    14.2.0-4ubuntu2~24.04                  deb                          
 libsystemd0                                                                   255.4-1ubuntu8.4                       deb                          
 libtasn1-6                                                                    4.19.0-3build1                         deb                          
@@ -713,7 +714,7 @@ libuuid1                                                                      2.
 libxtables12                                                                  1.8.10-3ubuntu2                        deb                          
 libxxhash0                                                                    0.8.2-2build1                          deb                          
 libzstd1                                                                      1.5.5+dfsg2-2build1.1                  deb                          
-linux-libc-dev                                                                6.8.0-52.53                            deb                          
+linux-libc-dev                                                                6.8.0-54.56                            deb                          
 login                                                                         1:4.13+dfsg1-4ubuntu3.2                deb                          
 logsave                                                                       1.47.0-2.4~exp1ubuntu4.1               deb                          
 lru-cache                                                                     10.2.2                                 npm                          
@@ -756,8 +757,8 @@ npm-pick-manifest                                                             9.
 npm-profile                                                                   10.0.0                                 npm                          
 npm-registry-fetch                                                            17.1.0                                 npm                          
 npm-user-validate                                                             2.0.1                                  npm                          
-openssh-client                                                                1:9.6p1-3ubuntu13.5                    deb                          
-openssl                                                                       3.0.13-0ubuntu3.4                      deb                          
+openssh-client                                                                1:9.6p1-3ubuntu13.8                    deb                          
+openssl                                                                       3.0.13-0ubuntu3.5                      deb                          
 p-map                                                                         4.0.0                                  npm                          
 package-json-from-dist                                                        1.0.0                                  npm                          
 pacote                                                                        18.0.6                                 npm                          
@@ -785,9 +786,9 @@ python3-minimal                                                               3.
 python3-pip-whl                                                               24.0+dfsg-1ubuntu1.1                   deb                          
 python3-setuptools-whl                                                        68.1.2-2ubuntu1.1                      deb                          
 python3-venv                                                                  3.12.3-0ubuntu2                        deb                          
-python3.12                                                                    3.12.3-1ubuntu0.4                      deb                          
-python3.12-minimal                                                            3.12.3-1ubuntu0.4                      deb                          
-python3.12-venv                                                               3.12.3-1ubuntu0.4                      deb                          
+python3.12                                                                    3.12.3-1ubuntu0.5                      deb                          
+python3.12-minimal                                                            3.12.3-1ubuntu0.5                      deb                          
+python3.12-venv                                                               3.12.3-1ubuntu0.5                      deb                          
 qrcode-terminal                                                               0.12.0                                 npm                          
 read                                                                          3.0.1                                  npm                          
 read-cmd-shim                                                                 4.0.0                                  npm                          
