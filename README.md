@@ -31,9 +31,13 @@ Images are versioned for easy pinning (examples: `v1.0.9`, `v1.0`, `v1`, `latest
 **Example Usage:**
 
 ```sh
+# Docker Hub example
 docker pull dublok/gh-runner:latest
-# or a specific version
 docker pull dublok/gh-runner:v1
+
+# GitHub Container Registry example
+docker pull ghcr.io/ercindedeoglu/gh-runner:latest
+docker pull ghcr.io/ercindedeoglu/gh-runner:v1
 ```
 
 You can use these in your own `docker-compose.yml` or run them directly. Both registries contain the same image versions.
