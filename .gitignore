@@ -172,3 +172,4 @@ cython_debug/
 
 repopack.txt
 repopack.yml
+docker-compose.local.yml
