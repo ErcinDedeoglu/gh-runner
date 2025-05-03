@@ -1,21 +1,25 @@
 FROM ubuntu:24.04
+
 ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-    bash \
-    curl \
-    git \
-    jq \
-    openssh-client \
-    docker.io \
-    libicu-dev \
-    python3 \
-    python3-venv \
-    kmod \
-    fuse-overlayfs \
-    iptables \
-    gh \
-    && rm -rf /var/lib/apt/lists/*
+        bash \
+        curl \
+        git \
+        jq \
+        openssh-client \
+        docker.io \
+        libicu-dev \
+        python3 \
+        python3-venv \
+        kmod \
+        fuse-overlayfs \
+        iptables \
+        gh \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 RUN python3 -m venv /venv
 RUN /venv/bin/pip install requests
 ENV PATH="/venv/bin:$PATH"

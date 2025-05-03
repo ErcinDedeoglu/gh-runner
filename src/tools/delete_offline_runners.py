@@ -44,8 +44,33 @@ def main():
         print("No runners found.")
         return
 
+    from datetime import datetime, timedelta, timezone
+
+    def extract_runner_timestamp(runner_name):
+        """Extract timestamp as datetime object from runner name.
+        Example runner name: gh-runner-3-w7vflbxl-20250503082101-7
+        Timestamp: 20250503082101 (second-to-last dash-delimited part)
+        """
+        parts = runner_name.split("-")
+        if len(parts) < 3:
+            return None
+        ts_str = parts[-2]
+        try:
+            dt = datetime.strptime(ts_str, "%Y%m%d%H%M%S")
+            return dt.replace(tzinfo=timezone.utc)
+        except Exception as e:
+            print(f"Could not parse timestamp from runner name {runner_name}: {e}")
+            return None
+
+    now = datetime.now(timezone.utc)
     for runner in runners:
         if runner["status"] == "offline":
+            runner_dt = extract_runner_timestamp(runner["name"])
+            if runner_dt is not None:
+                age = now - runner_dt
+                if age < timedelta(minutes=10):
+                    print(f"Skipping deletion of runner {runner['name']} (offline for less than 10 minutes)")
+                    continue
             delete_runner(url_type, base_url, runner["id"], headers)
 
 if __name__ == "__main__":
