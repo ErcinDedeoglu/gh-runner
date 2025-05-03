@@ -64,6 +64,7 @@ def main():
 
     now = datetime.now(timezone.utc)
     for runner in runners:
+        print(f"Runner: {runner['name']}, Status: {runner['status']}, Extracted timestamp: {extract_runner_timestamp(runner['name'])}")
         if runner["status"] == "offline":
             runner_dt = extract_runner_timestamp(runner["name"])
             if runner_dt is not None:
