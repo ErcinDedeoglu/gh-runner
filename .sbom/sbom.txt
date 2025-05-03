@@ -235,9 +235,9 @@ brace-expansion                                                               2.
 bsdutils                                                                      1:2.39.3-9ubuntu6.2                    deb                          
 ca-certificates                                                               20240203                               deb                          
 cacache                                                                       18.0.3                                 npm                          
-certifi                                                                       2025.1.31                              python                       
+certifi                                                                       2025.4.26                              python                       
 chalk                                                                         5.3.0                                  npm                          
-charset-normalizer                                                            3.4.1                                  python                       
+charset-normalizer                                                            3.4.2                                  python                       
 chownr                                                                        2.0.0                                  npm                          
 ci-info                                                                       4.0.0                                  npm                          
 cidr-regex                                                                    4.1.1                                  npm                          
@@ -676,7 +676,7 @@ libpam-modules-bin                                                            1.
 libpam-runtime                                                                1.5.3-5ubuntu5.1                       deb                          
 libpam0g                                                                      1.5.3-5ubuntu5.1                       deb                          
 libpcre2-8-0                                                                  10.42-4ubuntu2.1                       deb                          
-libperl5.38t64                                                                5.38.2-3.2build2.1                     deb                          
+libperl5.38t64                                                                5.38.2-3.2ubuntu0.1                    deb                          
 libproc2-0                                                                    2:4.0.4-4ubuntu3.2                     deb                          
 libpsl5t64                                                                    0.21.2-1.1build1                       deb                          
 libpython3-stdlib                                                             3.12.3-0ubuntu2                        deb                          
@@ -706,7 +706,7 @@ libuuid1                                                                      2.
 libxtables12                                                                  1.8.10-3ubuntu2                        deb                          
 libxxhash0                                                                    0.8.2-2build1                          deb                          
 libzstd1                                                                      1.5.5+dfsg2-2build1.1                  deb                          
-linux-libc-dev                                                                6.8.0-57.59                            deb                          
+linux-libc-dev                                                                6.8.0-59.61                            deb                          
 login                                                                         1:4.13+dfsg1-4ubuntu3.2                deb                          
 logsave                                                                       1.47.0-2.4~exp1ubuntu4.1               deb                          
 lru-cache                                                                     10.2.2                                 npm                          
@@ -749,7 +749,7 @@ npm-pick-manifest                                                             9.
 npm-profile                                                                   10.0.0                                 npm                          
 npm-registry-fetch                                                            17.1.0                                 npm                          
 npm-user-validate                                                             2.0.1                                  npm                          
-openssh-client                                                                1:9.6p1-3ubuntu13.9                    deb                          
+openssh-client                                                                1:9.6p1-3ubuntu13.11                   deb                          
 openssl                                                                       3.0.13-0ubuntu3.5                      deb                          
 p-map                                                                         4.0.0                                  npm                          
 package-json-from-dist                                                        1.0.0                                  npm                          
@@ -758,9 +758,10 @@ parse-conflict-json                                                           3.
 passwd                                                                        1:4.13+dfsg1-4ubuntu3.2                deb                          
 path-key                                                                      3.1.1                                  npm                          
 path-scurry                                                                   1.11.1                                 npm                          
-perl                                                                          5.38.2-3.2build2.1                     deb                          
+perl                                                                          5.38.2-3.2ubuntu0.1                    deb                          
 perl-base                                                                     5.38.2-3.2build2.1                     deb                          
-perl-modules-5.38                                                             5.38.2-3.2build2.1                     deb                          
+perl-base                                                                     5.38.2-3.2ubuntu0.1                    deb                          
+perl-modules-5.38                                                             5.38.2-3.2ubuntu0.1                    deb                          
 pip                                                                           24.0                                   python                       
 postcss-selector-parser                                                       6.1.0                                  npm                          
 proc-log                                                                      3.0.0                                  npm                          
@@ -831,7 +832,7 @@ ubuntu-keyring                                                                20
 unique-filename                                                               3.0.0                                  npm                          
 unique-slug                                                                   4.0.0                                  npm                          
 unminimize                                                                    0.2.1                                  deb                          
-urllib3                                                                       2.3.0                                  python                       
+urllib3                                                                       2.4.0                                  python                       
 util-deprecate                                                                1.0.2                                  npm                          
 util-linux                                                                    2.39.3-9ubuntu6.2                      deb                          
 validate-npm-package-license                                                  3.0.4                                  npm                          
