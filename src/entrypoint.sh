@@ -40,8 +40,7 @@ RUNNER_LABELS=${RUNNER_LABELS:-""}
 
 # Generate timestamp in the required format
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
-RANDOM_NUM=$((RANDOM % 10))
-RUNNER_NAME="${BASE_RUNNER_NAME}-${TIMESTAMP}-${RANDOM_NUM}"
+RUNNER_NAME="${BASE_RUNNER_NAME}-${TIMESTAMP}"
 
 # Validate required environment variables
 if [[ -z "$RUNNER_URL" || -z "$GITHUB_PAT" ]]; then

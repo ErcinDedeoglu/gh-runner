@@ -48,13 +48,13 @@ def main():
 
     def extract_runner_timestamp(runner_name):
         """Extract timestamp as datetime object from runner name.
-        Example runner name: gh-runner-3-w7vflbxl-20250503082101-7
-        Timestamp: 20250503082101 (second-to-last dash-delimited part)
+        Example runner name: gh-runner-3-w7vflbxl-20250503082101
+        Timestamp: 20250503082101 (last dash-delimited part)
         """
         parts = runner_name.split("-")
-        if len(parts) < 3:
+        if len(parts) < 2:
             return None
-        ts_str = parts[-2]
+        ts_str = parts[-1]
         try:
             dt = datetime.strptime(ts_str, "%Y%m%d%H%M%S")
             return dt.replace(tzinfo=timezone.utc)
