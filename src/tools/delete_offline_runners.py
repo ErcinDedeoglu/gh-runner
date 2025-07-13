@@ -8,11 +8,12 @@ def list_runners(url_type, base_url, headers):
     else:
         api_url = f"https://api.github.com/orgs/{base_url}/actions/runners"
     
-    response = requests.get(api_url, headers=headers)
-    if response.status_code == 200:
+    try:
+        response = requests.get(api_url, headers=headers, timeout=10)
+        response.raise_for_status()
         return response.json().get("runners", [])
-    else:
-        print(f"Failed to list runners: {response.status_code} - {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to list runners: {e}")
         return []
 
 def delete_runner(url_type, base_url, runner_id, headers):

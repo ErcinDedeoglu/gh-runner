@@ -6,8 +6,11 @@ services:
       - RUNNER_URL=https://github.com/your-org-or-repo
       - GITHUB_PAT=${GITHUB_PAT}
       - RUNNER_LABELS=docker,dind,ubuntu-latest,4cpu
+    # Mount the host Docker socket if you want to leverage the host’s Docker daemon.
+    # To run fully isolated DinD, set the environment variable DOCKER_SOCK to an empty
+    # string or comment out the following two lines.
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
     privileged: true
     restart: unless-stopped
 

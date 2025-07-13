@@ -16,10 +16,11 @@ def run_periodic_cleanup():
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"\n{current_time} - Running scheduled cleanup...", flush=True)
             
-            sys.argv = [sys.argv[0], url, token]
-            cleanup_runners()
+            # Pass arguments explicitly instead of mutating sys.argv
+            import subprocess
+            subprocess.run([sys.executable, '-m', 'delete_offline_runners', url, token],
+                           check=True, stdout=sys.stdout, stderr=sys.stderr)
             
-            sys.stdout.flush()
             time.sleep(300)
             
         except Exception as e:

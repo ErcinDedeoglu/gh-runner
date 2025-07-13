@@ -9,12 +9,12 @@ def get_runner_token(url_type, base_url, headers):
     else:
         api_url = f"https://api.github.com/orgs/{base_url}/actions/runners/registration-token"
     
-    response = requests.post(api_url, headers=headers)
-    
-    if response.status_code == 201:
+    try:
+        response = requests.post(api_url, headers=headers, timeout=10)
+        response.raise_for_status()
         return response.json().get("token")
-    else:
-        print(f"Error getting runner token: {response.status_code} - {response.text}", file=sys.stderr)
+    except requests.exceptions.RequestException as e:
+        print(f"Error getting runner token: {e}", file=sys.stderr)
         return None
 
 def main():

@@ -18,16 +18,23 @@ load_kernel_module br_netfilter
 (echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables 2>/dev/null || true) &>/dev/null
 (echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables 2>/dev/null || true) &>/dev/null
 
-# Start Docker in the background with specific storage driver
-dockerd --storage-driver=fuse-overlayfs &
-
-# Wait for Docker to start
-for i in {1..30}; do
-    if docker info >/dev/null 2>&1; then
-        break
-    fi
-    sleep 1
-done
+# Ensure a Docker daemon is available.
+# If the host Docker socket is mounted into the container we use it directly.
+# Otherwise, fall back to starting our own DinD daemon.
+if [ ! -S /var/run/docker.sock ]; then
+    echo "Docker socket not found; starting internal Docker daemon..."
+    dockerd --storage-driver=fuse-overlayfs &
+    # Wait for Docker to start
+    for i in {1..30}; do
+        if docker info >/dev/null 2>&1; then
+            echo "Docker daemon started successfully"
+            break
+        fi
+        sleep 1
+    done
+else
+    echo "Detected host Docker socket – skipping internal daemon startup"
+fi
 
 # Disable the root/sudo check for the GitHub Actions runner
 export RUNNER_ALLOW_RUNASROOT=1
