@@ -26,7 +26,7 @@ load_kernel_module br_netfilter
 # Otherwise, fall back to starting our own DinD daemon.
 if [ ! -S /var/run/docker.sock ]; then
     echo "Docker socket not found; starting internal Docker daemon..."
-    dockerd --storage-driver=fuse-overlayfs &
+    dockerd &
     DOCKERD_PID=$!
     # Wait for Docker to start
     for i in {1..30}; do
