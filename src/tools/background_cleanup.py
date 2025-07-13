@@ -18,7 +18,9 @@ def run_periodic_cleanup():
             
             # Pass arguments explicitly instead of mutating sys.argv
             import subprocess
-            subprocess.run([sys.executable, '-m', 'delete_offline_runners', url, token],
+            # Construct the path to the delete_offline_runners.py script
+            script_path = os.path.join(os.path.dirname(__file__), 'delete_offline_runners.py')
+            subprocess.run([sys.executable, script_path, url, token],
                            check=True, stdout=sys.stdout, stderr=sys.stderr)
             
             time.sleep(300)
