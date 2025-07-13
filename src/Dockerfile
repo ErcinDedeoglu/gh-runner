@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3-pip && 
     apt-get remove -y python3-pip && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+ENV PYTHONPATH /actions-runner/tools
 RUN mkdir -p /actions-runner/tools
 COPY tools/*.py /actions-runner/tools/
 COPY entrypoint.sh /entrypoint.sh
