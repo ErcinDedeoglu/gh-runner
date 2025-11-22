@@ -29,10 +29,10 @@ RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/release
     && tar xzf runner.tar.gz \
     && rm -f runner.tar.gz
 
-# Use system Python instead of venv to reduce layers
+# Install pip and keep it available for workflow steps
 RUN apt-get update && apt-get install -y --no-install-recommends python3-pip && \
     pip3 install --break-system-packages --no-cache-dir requests && \
-    apt-get remove -y python3-pip && apt-get autoremove -y && \
+    ln -s /usr/bin/pip3 /usr/bin/pip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Add Docker daemon configuration for cgroup v2 compatibility
