@@ -915,6 +915,7 @@ perl                                                                          5.
 perl-base                                                                     5.38.2-3.2ubuntu0.2                    deb                          
 perl-modules-5.38                                                             5.38.2-3.2ubuntu0.2                    deb                          
 picomatch                                                                     4.0.3                                  npm                          
+pip                                                                           24.0                                   python                       
 postcss-selector-parser                                                       6.1.0                                  npm                          
 postcss-selector-parser                                                       7.1.0                                  npm                          
 proc-log                                                                      3.0.0                                  npm                          
@@ -932,9 +933,13 @@ promzard                                                                      1.
 promzard                                                                      2.0.0                                  npm                          
 python3                                                                       3.12.3-0ubuntu2.1                      deb                          
 python3-minimal                                                               3.12.3-0ubuntu2.1                      deb                          
+python3-pip                                                                   24.0+dfsg-1ubuntu1.3                   deb                          
 python3-pip-whl                                                               24.0+dfsg-1ubuntu1.3                   deb                          
+python3-pkg-resources                                                         68.1.2-2ubuntu1.2                      deb                          
+python3-setuptools                                                            68.1.2-2ubuntu1.2                      deb                          
 python3-setuptools-whl                                                        68.1.2-2ubuntu1.2                      deb                          
 python3-venv                                                                  3.12.3-0ubuntu2.1                      deb                          
+python3-wheel                                                                 0.42.0-2                               deb                          
 python3.12                                                                    3.12.3-1ubuntu0.8                      deb                          
 python3.12-minimal                                                            3.12.3-1ubuntu0.8                      deb                          
 python3.12-venv                                                               3.12.3-1ubuntu0.8                      deb                          
@@ -955,6 +960,7 @@ sed                                                                           4.
 semver                                                                        7.6.2                                  npm                          
 semver                                                                        7.7.2                                  npm                          
 sensible-utils                                                                0.0.22                                 deb                          
+setuptools                                                                    68.1.2                                 python                       
 shebang-command                                                               2.0.0                                  npm        (+1 duplicate)    
 shebang-regex                                                                 3.0.0                                  npm        (+1 duplicate)    
 signal-exit                                                                   4.1.0                                  npm        (+1 duplicate)    
@@ -1017,6 +1023,7 @@ validate-npm-package-name                                                     5.
 validate-npm-package-name                                                     6.0.2                                  npm                          
 walk-up-path                                                                  3.0.1                                  npm                          
 walk-up-path                                                                  4.0.0                                  npm                          
+wheel                                                                         0.42.0                                 python                       
 which                                                                         2.0.2                                  npm        (+1 duplicate)    
 which                                                                         4.0.0                                  npm                          
 which                                                                         5.0.0                                  npm                          
