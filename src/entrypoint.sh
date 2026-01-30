@@ -86,10 +86,26 @@ echo "Successfully obtained runner token"
 
 # Configure the GitHub Actions runner
 cd /actions-runner
+
+# Build optional flags for runner configuration
+CONFIG_FLAGS=""
+
+# Ephemeral mode: runner exits after completing one job (set RUNNER_EPHEMERAL=true to enable)
+if [ "${RUNNER_EPHEMERAL:-false}" = "true" ]; then
+    CONFIG_FLAGS="$CONFIG_FLAGS --ephemeral"
+    echo "Ephemeral mode enabled - runner will exit after one job"
+fi
+
+# Disable auto-updates (recommended for containerized runners, set RUNNER_DISABLE_UPDATE=true to enable)
+if [ "${RUNNER_DISABLE_UPDATE:-false}" = "true" ]; then
+    CONFIG_FLAGS="$CONFIG_FLAGS --disableupdate"
+    echo "Auto-update disabled"
+fi
+
 if [ -z "$RUNNER_LABELS" ]; then
-    ./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --unattended
+    ./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" $CONFIG_FLAGS --unattended
 else
-    ./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --labels "$RUNNER_LABELS" --unattended
+    ./config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --labels "$RUNNER_LABELS" $CONFIG_FLAGS --unattended
 fi
 
 # Graceful shutdown handler
