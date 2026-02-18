@@ -260,7 +260,7 @@ aproba                                                                        2.
 apt                                                                           2.8.3                                  deb                          
 archy                                                                         1.0.0                                  npm        (+1 duplicate)    
 balanced-match                                                                1.0.2                                  npm        (+1 duplicate)    
-base-files                                                                    13ubuntu10.3                           deb                          
+base-files                                                                    13ubuntu10.4                           deb                          
 base-passwd                                                                   3.6.3build1                            deb                          
 bash                                                                          5.2.21-2ubuntu4                        deb                          
 bin-links                                                                     4.0.4                                  npm                          
@@ -295,7 +295,7 @@ code.cloudfoundry.org/clock                                                   v1
 color-convert                                                                 2.0.1                                  npm        (+1 duplicate)    
 color-name                                                                    1.1.4                                  npm        (+1 duplicate)    
 common-ancestor-path                                                          1.0.1                                  npm        (+1 duplicate)    
-containerd                                                                    1.7.28-0ubuntu1~24.04.1                deb                          
+containerd                                                                    1.7.28-0ubuntu1~24.04.2                deb                          
 corepack                                                                      0.34.1                                 npm                          
 corepack                                                                      0.34.5                                 npm                          
 coreutils                                                                     9.4-3ubuntu6.1                         deb                          
@@ -720,10 +720,10 @@ libblkid1                                                                     2.
 libbrotli1                                                                    1.1.0-2build2                          deb                          
 libbsd0                                                                       0.12.1-1build1.1                       deb                          
 libbz2-1.0                                                                    1.0.8-5.1build0.1                      deb                          
-libc-bin                                                                      2.39-0ubuntu8.6                        deb                          
-libc-dev-bin                                                                  2.39-0ubuntu8.6                        deb                          
-libc6                                                                         2.39-0ubuntu8.6                        deb                          
-libc6-dev                                                                     2.39-0ubuntu8.6                        deb                          
+libc-bin                                                                      2.39-0ubuntu8.7                        deb                          
+libc-dev-bin                                                                  2.39-0ubuntu8.7                        deb                          
+libc6                                                                         2.39-0ubuntu8.7                        deb                          
+libc6-dev                                                                     2.39-0ubuntu8.7                        deb                          
 libcap-ng0                                                                    0.8.4-2build2                          deb                          
 libcap2                                                                       1:2.66-5ubuntu2.2                      deb                          
 libcbor0.10                                                                   0.10.2-1.2ubuntu2                      deb                          
@@ -736,7 +736,7 @@ libdb5.3t64                                                                   5.
 libdebconfclient0                                                             0.271ubuntu3                           deb                          
 libedit2                                                                      3.1-20230828-1build1                   deb                          
 liberror-perl                                                                 0.17029-2                              deb                          
-libexpat1                                                                     2.6.1-2ubuntu0.3                       deb                          
+libexpat1                                                                     2.6.1-2ubuntu0.4                       deb                          
 libext2fs2t64                                                                 1.47.0-2.4~exp1ubuntu4.1               deb                          
 libffi8                                                                       3.4.6-1build1                          deb                          
 libfido2-1                                                                    1.14.0-1build3                         deb                          
@@ -761,7 +761,7 @@ libkeyutils1                                                                  1.
 libkmod2                                                                      31+20240202-2ubuntu7.1                 deb                          
 libkrb5-3                                                                     1.20.1-6ubuntu2.6                      deb                          
 libkrb5support0                                                               1.20.1-6ubuntu2.6                      deb                          
-libldap2                                                                      2.6.7+dfsg-1~exp1ubuntu8.2             deb                          
+libldap2                                                                      2.6.10+dfsg-0ubuntu0.24.04.1           deb                          
 liblz4-1                                                                      1.9.4-1build1.1                        deb                          
 liblzma5                                                                      5.6.1+really5.4.5-1ubuntu0.2           deb                          
 libmd0                                                                        1.1.0-2build1.1                        deb                          
@@ -806,8 +806,8 @@ libperl5.38t64                                                                5.
 libproc2-0                                                                    2:4.0.4-4ubuntu3.2                     deb                          
 libpsl5t64                                                                    0.21.2-1.1build1                       deb                          
 libpython3-stdlib                                                             3.12.3-0ubuntu2.1                      deb                          
-libpython3.12-minimal                                                         3.12.3-1ubuntu0.10                     deb                          
-libpython3.12-stdlib                                                          3.12.3-1ubuntu0.10                     deb                          
+libpython3.12-minimal                                                         3.12.3-1ubuntu0.11                     deb                          
+libpython3.12-stdlib                                                          3.12.3-1ubuntu0.11                     deb                          
 libreadline8t64                                                               8.2-4build1                            deb                          
 librtmp1                                                                      2.4+20151223.gitfa8646d.1-2build7      deb                          
 libsasl2-2                                                                    2.1.28+dfsg1-5ubuntu3.1                deb                          
@@ -821,7 +821,7 @@ libsmartcols1                                                                 2.
 libsqlite3-0                                                                  3.45.1-1ubuntu2.5                      deb                          
 libss2                                                                        1.47.0-2.4~exp1ubuntu4.1               deb                          
 libssh-4                                                                      0.10.6-2ubuntu0.2                      deb                          
-libssl3t64                                                                    3.0.13-0ubuntu3.6                      deb                          
+libssl3t64                                                                    3.0.13-0ubuntu3.7                      deb                          
 libstdc++6                                                                    14.2.0-4ubuntu2~24.04                  deb                          
 libsystemd0                                                                   255.4-1ubuntu8.12                      deb                          
 libtasn1-6                                                                    4.19.0-3ubuntu0.24.04.2                deb                          
@@ -832,7 +832,7 @@ libuuid1                                                                      2.
 libxtables12                                                                  1.8.10-3ubuntu2                        deb                          
 libxxhash0                                                                    0.8.2-2build1                          deb                          
 libzstd1                                                                      1.5.5+dfsg2-2build1.1                  deb                          
-linux-libc-dev                                                                6.8.0-90.91                            deb                          
+linux-libc-dev                                                                6.8.0-100.100                          deb                          
 login                                                                         1:4.13+dfsg1-4ubuntu3.2                deb                          
 logsave                                                                       1.47.0-2.4~exp1ubuntu4.1               deb                          
 lru-cache                                                                     10.2.2                                 npm                          
@@ -899,7 +899,7 @@ npm-registry-fetch                                                            19
 npm-user-validate                                                             2.0.1                                  npm                          
 npm-user-validate                                                             3.0.0                                  npm                          
 openssh-client                                                                1:9.6p1-3ubuntu13.14                   deb                          
-openssl                                                                       3.0.13-0ubuntu3.6                      deb                          
+openssl                                                                       3.0.13-0ubuntu3.7                      deb                          
 p-map                                                                         4.0.0                                  npm                          
 p-map                                                                         7.0.3                                  npm                          
 package-json-from-dist                                                        1.0.0                                  npm                          
@@ -941,9 +941,9 @@ python3-setuptools                                                            68
 python3-setuptools-whl                                                        68.1.2-2ubuntu1.2                      deb                          
 python3-venv                                                                  3.12.3-0ubuntu2.1                      deb                          
 python3-wheel                                                                 0.42.0-2                               deb                          
-python3.12                                                                    3.12.3-1ubuntu0.10                     deb                          
-python3.12-minimal                                                            3.12.3-1ubuntu0.10                     deb                          
-python3.12-venv                                                               3.12.3-1ubuntu0.10                     deb                          
+python3.12                                                                    3.12.3-1ubuntu0.11                     deb                          
+python3.12-minimal                                                            3.12.3-1ubuntu0.11                     deb                          
+python3.12-venv                                                               3.12.3-1ubuntu0.11                     deb                          
 qrcode-terminal                                                               0.12.0                                 npm        (+1 duplicate)    
 read                                                                          3.0.1                                  npm                          
 read                                                                          4.1.0                                  npm                          
