@@ -663,7 +663,7 @@ https-proxy-agent                                                             7.
 https-proxy-agent                                                             7.0.6                                   npm                          
 iconv-lite                                                                    0.6.3                                   npm        (+1 duplicate)    
 icu-devtools                                                                  74.2-1ubuntu3.1                         deb                          
-idna                                                                          3.11                                    python                       
+idna                                                                          3.12                                    python                       
 ignore-walk                                                                   6.0.5                                   npm                          
 ignore-walk                                                                   8.0.0                                   npm                          
 imurmurhash                                                                   0.1.4                                   npm        (+1 duplicate)    
