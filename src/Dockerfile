@@ -21,8 +21,16 @@ RUN apt-get update && \
         gh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ARG RUNNER_ARCH="x64"
-RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
+# TARGETARCH is automatically provided by buildx (amd64, arm64, ...).
+# Map Docker arch names to the naming the actions/runner release uses (x64 / arm64 / arm).
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+        amd64)  RUNNER_ARCH="x64"   ;; \
+        arm64)  RUNNER_ARCH="arm64" ;; \
+        arm)    RUNNER_ARCH="arm"   ;; \
+        *)      echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
     && mkdir -p /actions-runner && cd /actions-runner \
     && curl -fsSL -o runner.tar.gz \
        https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz \
