@@ -293,7 +293,7 @@ cacache                                                                       20
 certifi                                                                       2026.7.22                               python                       
 chalk                                                                         5.3.0                                   npm                          
 chalk                                                                         5.6.2                                   npm                          
-charset-normalizer                                                            3.5.1                                   python                       
+charset-normalizer                                                            3.5.2                                   python                       
 chownr                                                                        2.0.0                                   npm                          
 chownr                                                                        3.0.0                                   npm                          
 ci-info                                                                       4.0.0                                   npm                          
@@ -320,7 +320,7 @@ corepack                                                                      0.
 coreutils                                                                     9.4-3ubuntu6.3                          deb                          
 cross-spawn                                                                   7.0.3                                   npm                          
 cssesc                                                                        3.0.0                                   npm        (+1 duplicate)    
-curl                                                                          8.5.0-2ubuntu10.13                      deb                          
+curl                                                                          8.5.0-2ubuntu10.15                      deb                          
 dario.cat/mergo                                                               v1.0.2                                  go-module  (+1 duplicate)    
 dash                                                                          0.5.12-6ubuntu5                         deb                          
 debconf                                                                       1.5.86ubuntu1                           deb                          
@@ -686,7 +686,7 @@ https-proxy-agent                                                             7.
 iconv-lite                                                                    0.6.3                                   npm                          
 iconv-lite                                                                    0.7.2                                   npm                          
 icu-devtools                                                                  74.2-1ubuntu3.1                         deb                          
-idna                                                                          3.19                                    python                       
+idna                                                                          3.20                                    python                       
 ignore-walk                                                                   6.0.5                                   npm                          
 ignore-walk                                                                   8.0.0                                   npm                          
 imurmurhash                                                                   0.1.4                                   npm                          
@@ -743,13 +743,13 @@ libcbor0.10                                                                   0.
 libcom-err2                                                                   1.47.0-2.4~exp1ubuntu4.1                deb                          
 libcrypt-dev                                                                  1:4.4.36-4build1                        deb                          
 libcrypt1                                                                     1:4.4.36-4build1                        deb                          
-libcurl3t64-gnutls                                                            8.5.0-2ubuntu10.13                      deb                          
-libcurl4t64                                                                   8.5.0-2ubuntu10.13                      deb                          
+libcurl3t64-gnutls                                                            8.5.0-2ubuntu10.15                      deb                          
+libcurl4t64                                                                   8.5.0-2ubuntu10.15                      deb                          
 libdb5.3t64                                                                   5.3.28+dfsg2-7                          deb                          
 libdebconfclient0                                                             0.271ubuntu3                            deb                          
 libedit2                                                                      3.1-20230828-1build1                    deb                          
 liberror-perl                                                                 0.17029-2                               deb                          
-libexpat1                                                                     2.6.1-2ubuntu0.4                        deb                          
+libexpat1                                                                     2.6.1-2ubuntu0.6                        deb                          
 libext2fs2t64                                                                 1.47.0-2.4~exp1ubuntu4.1                deb                          
 libffi8                                                                       3.4.6-1build1                           deb                          
 libfido2-1                                                                    1.14.0-1build3                          deb                          
@@ -837,6 +837,7 @@ libsqlite3-0                                                                  3.
 libss2                                                                        1.47.0-2.4~exp1ubuntu4.1                deb                          
 libssh-4                                                                      0.10.6-2ubuntu0.5                       deb                          
 libssl3t64                                                                    3.0.13-0ubuntu3.15                      deb                          
+libssl3t64                                                                    3.0.13-0ubuntu3.16                      deb                          
 libstdc++6                                                                    14.2.0-4ubuntu2~24.04.1                 deb                          
 libsystemd0                                                                   255.4-1ubuntu8.17                       deb                          
 libtasn1-6                                                                    4.19.0-3ubuntu0.24.04.2                 deb                          
@@ -847,7 +848,7 @@ libuuid1                                                                      2.
 libxtables12                                                                  1.8.10-3ubuntu2                         deb                          
 libxxhash0                                                                    0.8.2-2build1                           deb                          
 libzstd1                                                                      1.5.5+dfsg2-2build1.1                   deb                          
-linux-libc-dev                                                                6.8.0-139.139                           deb                          
+linux-libc-dev                                                                6.8.0-146.146                           deb                          
 login                                                                         1:4.13+dfsg1-4ubuntu3.2                 deb                          
 logsave                                                                       1.47.0-2.4~exp1ubuntu4.1                deb                          
 lru-cache                                                                     10.2.2                                  npm                          
@@ -915,7 +916,7 @@ npm-registry-fetch                                                            19
 npm-user-validate                                                             2.0.1                                   npm                          
 npm-user-validate                                                             4.0.0                                   npm                          
 openssh-client                                                                1:9.6p1-3ubuntu13.19                    deb                          
-openssl                                                                       3.0.13-0ubuntu3.15                      deb                          
+openssl                                                                       3.0.13-0ubuntu3.16                      deb                          
 p-map                                                                         4.0.0                                   npm                          
 p-map                                                                         7.0.4                                   npm                          
 package-json-from-dist                                                        1.0.0                                   npm                          
