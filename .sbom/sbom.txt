@@ -929,7 +929,6 @@ path-key                                                                      3.
 path-scurry                                                                   1.11.1                                  npm                          
 path-scurry                                                                   2.0.2                                   npm                          
 perl                                                                          5.38.2-3.2ubuntu0.6                     deb                          
-perl-base                                                                     5.38.2-3.2ubuntu0.4                     deb                          
 perl-base                                                                     5.38.2-3.2ubuntu0.6                     deb                          
 perl-modules-5.38                                                             5.38.2-3.2ubuntu0.6                     deb                          
 picomatch                                                                     4.0.4                                   npm                          
